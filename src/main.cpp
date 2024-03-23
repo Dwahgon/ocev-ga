@@ -1,9 +1,12 @@
+#include "ga/ga.h"
+
+#include "utils/confparser.h"
+#include "utils/stringifiers.h"
+#include "sat/dimacsparser.h"
+
 #include <iostream>
-#include "confparser.h"
-#include "populationgen.h"
-#include "stringifiers.h"
-#include "dimacsparser.h"
-#include "ga.h"
+
+#define ASSIGNMENT_NUM 2
 
 int main()
 {
@@ -26,12 +29,12 @@ int main()
     ga::ChromosomeGenerator cg {confs.count("SEED") && confs.at("SEED").length() ? ga::ChromosomeGenerator(dim, std::stoul(confs.at("SEED"))) : ga::ChromosomeGenerator(dim)};
     std::cout << "SEED: " << cg.getSeed() << std::endl;
 
-    #if 0 // Assignment 1
+    #if ASSIGNMENT_NUM == 1 // Assignment 1
         // Generate populations
-        Population<ga::GeneBin> binPop = generateGeneBinPopulation(cg, pop);
-        Population<GeneInt> intPop = generateGeneIntPopulation(cg, pop, istart, iend);
-        Population<GeneIntPerm> intPermPop = generateGeneIntPermPopulation(cg, pop);
-        Population<GeneReal> realPop = generateGeneRealPopulation(cg, pop, rstart, rend);
+        ga::Population<ga::GeneBin> binPop = generateGeneBinPopulation(cg, pop);
+        ga::Population<ga::GeneInt> intPop = generateGeneIntPopulation(cg, pop, istart, iend);
+        ga::Population<ga::GeneIntPerm> intPermPop = generateGeneIntPermPopulation(cg, pop);
+        ga::Population<ga::GeneReal> realPop = generateGeneRealPopulation(cg, pop, rstart, rend);
 
         // Print populations
         std::cout << "POPULATION BINARY:\n"
@@ -45,19 +48,25 @@ int main()
             << std::endl;
     #endif
 
-    #if 1 // Assignment 2
+    #if ASSIGNMENT_NUM == 2 // Assignment 2
+        // Load SAT formula
         sat::Formula formula {parseDimacsFormula(std::cin)};
+
+        // Configure GA
         ga::GeneticAlgorithm<ga::GeneBin> geneticAlgorithm {
             pop,
             std::bind(ga::generateGeneBinPopulation, std::ref(cg), std::placeholders::_1),
             std::bind(&sat::Formula::score, &formula, std::placeholders::_1),
         };
 
+        // Create initial population
         geneticAlgorithm.initPopulation();
 
+        // Get GA population data
         ga::Population<ga::GeneBin> gaPopulation {geneticAlgorithm.getPopulation()};
         ga::Scores scores {geneticAlgorithm.getPopulationScore()};
 
+        // Print GA population data
         std::cout << "Initial Population:\n" << populationToString(gaPopulation, dim)
                 << "\nScores:\n" << scoresToString(scores)
                 << "\nBest Individual:\n" << gaBestIndividualToString(geneticAlgorithm, dim)

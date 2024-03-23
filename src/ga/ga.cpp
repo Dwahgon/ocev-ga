@@ -1,4 +1,5 @@
 #include "ga.h"
+
 #include <algorithm>
 
 using namespace ga;

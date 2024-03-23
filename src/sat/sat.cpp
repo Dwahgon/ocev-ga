@@ -1,4 +1,5 @@
 #include "sat.h"
+
 #include <math.h>
 
 sat::Clause::Clause(const std::vector<int> _clause) : clause(_clause) {}

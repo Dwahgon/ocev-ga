@@ -1,4 +1,5 @@
 #include "dimacsparser.h"
+
 #include <sstream>
 #include <string>
 #include <istream>

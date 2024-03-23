@@ -1,23 +1,33 @@
+TARGET := ocev-ga
+SRC_EXT := .cpp
+HDR_EXT := .h
+OBJ_EXT := .o
+
+BUILD_DIR := build
+SRC_DIR := src
+OBJ_DIR := obj
+
+SRCS := $(shell find $(SRC_DIR) -name "*$(SRC_EXT)")
+OBJS := $(addprefix $(OBJ_DIR)/,$(notdir $(patsubst %$(SRC_EXT),%$(OBJ_EXT),$(SRCS))))
+
 CXX := g++
-CXXFLAGS := -Wall -g
-TARGET := ga
-BUILDDIR := build
+CXX_FLAGS := -g -Wall
 
-SRCS := $(wildcard *.c++)
-OBJS := $(patsubst %.c++,%.o,$(SRCS))
+all: $(BUILD_DIR)/$(TARGET)
+	printf "POP=30\nDIM=100\nSEED=\nINT_RANGE_START=-5\nINT_RANGE_END=10\nREAL_RANGE_START=-10\nREAL_RANGE_END=10" > $(BUILD_DIR)/conf.conf
 
-all: $(BUILDDIR)/$(TARGET)
-	printf "POP=30\nDIM=100\nSEED=\nINT_RANGE_START=-5\nINT_RANGE_END=10\nREAL_RANGE_START=-10\nREAL_RANGE_END=10" > $(BUILDDIR)/conf.conf
-
-$(BUILDDIR)/$(TARGET): $(OBJS) | $(BUILDDIR)
+$(BUILD_DIR)/$(TARGET): $(OBJS) | $(BUILD_DIR)
 	$(CXX) -o $@ $^
-%.o: %.c++
-	$(CXX) $(CXXFLAGS) -c $<
-$(BUILDDIR):
-	mkdir -p $(BUILDDIR)
+$(OBJ_DIR)/%$(OBJ_EXT): $(SRCS) | $(OBJ_DIR)
+	$(CXX) $(CXX_FLAGS) -c -o $@ $(filter %$(basename $(notdir $@))$(SRC_EXT),$(SRCS))
+
+$(BUILD_DIR):
+	mkdir -p $(BUILD_DIR)
+
+$(OBJ_DIR):
+	mkdir -p $(OBJ_DIR)
 
 clean:
-	rm -rf $(TARGET) *.o
-	rm -rf $(BUILDDIR)
+	rm -rf $(BUILD_DIR) $(OBJ_DIR)
 
 .PHONY: all clean

@@ -1,9 +1,7 @@
 #ifndef CHROMOSSOME_PRINTER_H
 #define CHROMOSSOME_PRINTER_H
 
-#include "chromosomegen.h"
-#include "populationgen.h"
-#include "ga.h"
+#include "../ga/ga.h"
 
 std::string binToString(unsigned int num, unsigned int sizeFixed = 0);
 
