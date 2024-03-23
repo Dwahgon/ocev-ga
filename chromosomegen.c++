@@ -3,6 +3,8 @@
 #include <vector>
 #include <algorithm>
 
+using namespace ga;
+
 ChromosomeGenerator::ChromosomeGenerator(const unsigned long chromossomeSize) : seed(std::random_device()()), rng(std::mt19937(this->seed)), chromossomeSize(chromossomeSize) {}
 
 ChromosomeGenerator::ChromosomeGenerator(const unsigned long chromossomeSize, const unsigned long seed) : seed(seed), rng(std::mt19937(seed)), chromossomeSize(chromossomeSize) {}
@@ -19,10 +21,10 @@ Chromosome<GeneBin> ChromosomeGenerator::generateChromosomeBin()
 
 Chromosome<GeneBin> ChromosomeGenerator::generateChromosomeBin(std::size_t size)
 {
-    const std::size_t vecsize = (size - 1) / 32 + 1;
+    const std::size_t vecsize = (size - 1) / 32 + 1; // Subtrack size by 1 because, for example, if we have a chromossome size of 32, we would only need 1 32bit integer in the vector, so (32-1) / 32 + 1 = 1. If we have a chromossome size of 33, we would need 2 32bit integer in the vector, so (33-1) / 32 + 1 = 2.
     Chromosome<GeneBin> binum(vecsize);
-    std::uniform_int_distribution<GeneBin> fullBinDist(0, 0xffffffff), parcialBinDist(0, pow(2, size - (vecsize - 1) * 32));
-    for (std::size_t i = 0; i < vecsize; i++)
+    std::uniform_int_distribution<GeneBin> fullBinDist(0, 0xffffffff), parcialBinDist(0, 1 << (size - (vecsize - 1) * 32));
+    for (std::size_t i = 0; i < vecsize; i++ )
     {
         binum[i] = i == vecsize - 1 ? parcialBinDist(this->rng) : fullBinDist(this->rng);
     }

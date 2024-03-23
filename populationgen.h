@@ -3,12 +3,14 @@
 
 #include "chromosomegen.h"
 
-template <typename T>
-using Population = std::vector<Chromosome<T>>;
+namespace ga{
+    template <typename T>
+    using Population = std::vector<Chromosome<T>>;
 
-Population<GeneBin> generateGeneBinPopulation(ChromosomeGenerator &cg, std::size_t pop_size);
-Population<GeneInt> generateGeneIntPopulation(ChromosomeGenerator &cg, std::size_t pop_size, GeneInt range_start, GeneInt range_end);
-Population<GeneIntPerm> generateGeneIntPermPopulation(ChromosomeGenerator &cg, std::size_t pop_size);
-Population<GeneReal> generateGeneRealPopulation(ChromosomeGenerator &cg, std::size_t pop_size, GeneReal range_start, GeneReal range_end);
+    Population<GeneBin> generateGeneBinPopulation(ChromosomeGenerator &cg, std::size_t pop_size);
+    Population<GeneInt> generateGeneIntPopulation(ChromosomeGenerator &cg, std::size_t pop_size, GeneInt range_start, GeneInt range_end);
+    Population<GeneIntPerm> generateGeneIntPermPopulation(ChromosomeGenerator &cg, std::size_t pop_size);
+    Population<GeneReal> generateGeneRealPopulation(ChromosomeGenerator &cg, std::size_t pop_size, GeneReal range_start, GeneReal range_end);
+}
 
 #endif
