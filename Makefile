@@ -11,7 +11,7 @@ SRCS := $(shell find $(SRC_DIR) -name "*$(SRC_EXT)")
 OBJS := $(addprefix $(OBJ_DIR)/,$(notdir $(patsubst %$(SRC_EXT),%$(OBJ_EXT),$(SRCS))))
 
 CXX := g++
-CXX_FLAGS := -g -Wall
+CXX_FLAGS := -g -Wall -std=c++11
 
 all: $(BUILD_DIR)/$(TARGET)
 	printf "POP=30\nDIM=100\nSEED=\nINT_RANGE_START=-5\nINT_RANGE_END=10\nREAL_RANGE_START=-10\nREAL_RANGE_END=10" > $(BUILD_DIR)/conf.conf
