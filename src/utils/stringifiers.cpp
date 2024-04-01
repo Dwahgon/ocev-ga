@@ -1,5 +1,6 @@
 #include "stringifiers.h"
 
+
 #include <iostream>
 #include <cstdint>
 #include <iostream>
@@ -62,7 +63,7 @@ std::string scoresToString(std::vector<int> scores){
 
 template <typename T>
 std::string gaBestIndividualToString(ga::GeneticAlgorithm<T> &ga, std::size_t dim){
-    std::size_t bestIndividualIndex {ga.getBestIndividualIndex()};
+    std::size_t bestIndividualIndex {ga.getCurrentBestIndividualIndex()};
     ga::Population<T> population {ga.getPopulation()};
     ga::Scores scores {ga.getPopulationScore()};
     std::ostringstream stringStream;
@@ -77,3 +78,36 @@ template std::string gaBestIndividualToString(ga::GeneticAlgorithm<ga::GeneBin> 
 template std::string gaBestIndividualToString(ga::GeneticAlgorithm<ga::GeneInt> &ga, std::size_t dim);
 // template std::string populationToString(ga::Population<ga::GeneIntPerm>, unsigned int);
 template std::string gaBestIndividualToString(ga::GeneticAlgorithm<ga::GeneReal> &ga, std::size_t dim);
+
+template <class T>
+std::string gaGenerationScoreInfoToString(ga::GeneticAlgorithm<T> &ga){
+    ga::GenerationScoreInfo generationScoreInfo {ga.calculateGenerationScoreInfo()};
+    int currentGeneration {ga.getCurrentGeneration()};
+    std::ostringstream stringStream;
+
+    stringStream << currentGeneration << ": "
+        << "best score: " << generationScoreInfo.best << "; "
+        << "worst score: " << generationScoreInfo.worst << "; "
+        << "average score: " << generationScoreInfo.avg << "; "
+        << "standard deviation: " << generationScoreInfo.stdDeviation;
+    return stringStream.str();
+}
+template std::string gaGenerationScoreInfoToString(ga::GeneticAlgorithm<ga::GeneBin> &ga);
+template std::string gaGenerationScoreInfoToString(ga::GeneticAlgorithm<ga::GeneInt> &ga);
+// template std::string gaGenerationScoreInfoToString(ga::Population<ga::GeneIntPerm>);
+template std::string gaGenerationScoreInfoToString(ga::GeneticAlgorithm<ga::GeneReal> &ga);
+
+template <typename T>
+std::string gaSolutionToString(ga::GeneticAlgorithm<T> &ga, std::size_t dim){
+    ga::GeneticAlgorithmSolution<T> solution {ga.getSolution()};
+    std::ostringstream stringStream;
+
+    stringStream << chromosomeToString(solution.chromosome, dim)
+        << "\nScore:\t" << solution.score;
+
+    return stringStream.str();
+}
+template std::string gaSolutionToString(ga::GeneticAlgorithm<ga::GeneBin> &ga, std::size_t dim);
+template std::string gaSolutionToString(ga::GeneticAlgorithm<ga::GeneInt> &ga, std::size_t dim);
+// template std::string gaSolutionToString(ga::Population<ga::GeneIntPerm>, unsigned int);
+template std::string gaSolutionToString(ga::GeneticAlgorithm<ga::GeneReal> &ga, std::size_t dim);

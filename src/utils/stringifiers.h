@@ -16,4 +16,10 @@ std::string scoresToString(std::vector<int> score);
 template <typename T>
 std::string gaBestIndividualToString(ga::GeneticAlgorithm<T> &ga, std::size_t dim);
 
+template <typename T>
+std::string gaGenerationScoreInfoToString(ga::GeneticAlgorithm<T> &ga);
+
+template <typename T>
+std::string gaSolutionToString(ga::GeneticAlgorithm<T> &ga, std::size_t dim);
+
 #endif

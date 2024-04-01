@@ -1,21 +1,12 @@
 #ifndef CHROMOSOMEGEN_H
 #define CHROMOSOMEGEN_H
 
+#include "types.h"
+
 #include <vector>
 #include <random>
 
 namespace ga {
-    using test = int;
-}
-
-namespace ga {
-    template <class T>
-    using Chromosome = std::vector<T>;
-    using GeneBin = unsigned int;
-    using GeneInt = int;
-    using GeneIntPerm = unsigned int;
-    using GeneReal = double;
-
     class ChromosomeGenerator
     {
         const unsigned long seed;

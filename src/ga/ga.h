@@ -1,33 +1,34 @@
 #ifndef GA_H
 #define GA_H
 
+#include "types.h"
 #include "chromosomegen.h"
 #include "populationgen.h"
 
 #include <vector>
 #include <functional>
 
-
 namespace ga {
-    template <class T>
-    using PopulationGenerator = std::function<Population<T>(std::size_t)>;
-    template <class T>
-    using ObjectiveFunction = std::function<int(Chromosome<T>)>;
-    using Score = int;
-    using Scores = std::vector<int>;
-
     template <class T>
     class GeneticAlgorithm{
         const std::size_t populationSize;
         const PopulationGenerator<T> populationGenerator;
         const ObjectiveFunction<T> objectiveFunction;
+        const SelectionFunction selectionFunction;
+        const CrossoverFunction<T> crossoverFunction;
+        const MutationFunction<T> mutationFunction;
+
+        const double crossoverRate;
+        const double mutationRate;
 
         Population<T> population;
         Scores populationScore;
-        std::size_t bestIndividualIndex;
+        Chromosome<T> solution;
+        Score solutionScore;
+        int currentGeneration;
 
         public:
-            GeneticAlgorithm(const std::size_t populationSize, const PopulationGenerator<T> populationGenerator, const ObjectiveFunction<T> objectiveFunction);
+            GeneticAlgorithm(const std::size_t populationSize, const PopulationGenerator<T> populationGenerator, const ObjectiveFunction<T> objectiveFunction, const SelectionFunction selectionFunction, const CrossoverFunction<T> crossoverFunction, const MutationFunction<T> mutationFunction, double crossoverRate, double mutationRate);
 
             void initPopulation();
             Population<T> getPopulation() const;
@@ -35,7 +36,18 @@ namespace ga {
             void calculatePopulationScore();
             Scores getPopulationScore() const;
 
-            std::size_t getBestIndividualIndex() const;
+            int getCurrentGeneration() const;
+
+            GenerationScoreInfo calculateGenerationScoreInfo() const;
+
+            std::size_t getCurrentBestIndividualIndex() const;
+            std::size_t getCurrentWorstIndividualIndex() const;
+
+            GeneticAlgorithmSolution<T> getSolution() const;
+
+            void step();
+
+            void reset();
     };
 }
 
