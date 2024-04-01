@@ -3,8 +3,10 @@
 
 #include "types.h"
 
+#include <random>
+
 namespace ga{
-    std::vector<Chromosome<GeneBin>> binOnePointCrossover(Chromosome<GeneBin> father, Chromosome<GeneBin> mother, std::size_t binSize);
+    std::vector<Chromosome<GeneBin>> binOnePointCrossover(std::mt19937& rng, Chromosome<GeneBin> father, Chromosome<GeneBin> mother, std::size_t binSize);
 };
 
 #endif

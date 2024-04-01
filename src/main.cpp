@@ -1,5 +1,5 @@
 #include "ga/ga.h"
-#include "ga/selectionfunctions.h"
+#include "ga/selection.h"
 #include "ga/crossover.h"
 #include "ga/mutation.h"
 
@@ -87,12 +87,13 @@ int main()
 
         // Configure GA
         ga::GeneticAlgorithm<ga::GeneBin> geneticAlgorithm {
+            confs.count("SEED") && confs.at("SEED").length() ? std::stoul(confs.at("SEED")) : std::random_device()(),
             pop,
             std::bind(ga::generateGeneBinPopulation, std::ref(cg), std::placeholders::_1),
             std::bind(&sat::Formula::score, &formula, std::placeholders::_1),
             ga::rouletteWheelSelection,
-            std::bind(ga::binOnePointCrossover, std::placeholders::_1, std::placeholders::_2, dim),
-            std::bind(ga::bitwiseMutation, std::placeholders::_1, dim, p_m),
+            std::bind(ga::binOnePointCrossover, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, dim),
+            std::bind(ga::bitwiseMutation, std::placeholders::_1, std::placeholders::_2, dim, p_m),
             crossoverRate,
             mutationRate
         };

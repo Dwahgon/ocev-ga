@@ -1,9 +1,9 @@
-#include "selectionfunctions.h"
+#include "selection.h"
 
 #include <cctype>
 #include <vector>
 #include <algorithm>
-#include<random>
+#include <random>
 
 std::size_t binSearchCDF(const std::vector<double>& l, double n){
     if (n >= 1.0) return l.size() - 1;
@@ -22,8 +22,7 @@ std::size_t binSearchCDF(const std::vector<double>& l, double n){
     return curI;
 }
 
-std::vector<int> ga::rouletteWheelSelection(std::size_t amount, ga::Scores scores){
-    std::mt19937 rng {std::random_device()()};
+std::vector<int> ga::rouletteWheelSelection(std::mt19937& rng, std::size_t amount, ga::Scores scores){
     std::uniform_real_distribution<double> dist(0.0, 1.0);
     // Calculate total population score
     int totalScore = 0;

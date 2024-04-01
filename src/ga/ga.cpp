@@ -7,6 +7,7 @@ using namespace ga;
 
 template<class T>
 GeneticAlgorithm<T>::GeneticAlgorithm(
+    const unsigned long seed,
     const std::size_t populationSize,
     const PopulationGenerator<T> populationGenerator,
     const ObjectiveFunction<T> objectiveFunction,
@@ -16,7 +17,8 @@ GeneticAlgorithm<T>::GeneticAlgorithm(
     double crossoverRate,
     double mutationRate
 )
-    : populationSize(populationSize),
+    : seed(seed),
+    populationSize(populationSize),
     populationGenerator(populationGenerator),
     objectiveFunction(objectiveFunction),
     selectionFunction(selectionFunction),
@@ -24,11 +26,12 @@ GeneticAlgorithm<T>::GeneticAlgorithm(
     mutationFunction(mutationFunction),
     crossoverRate(crossoverRate),
     mutationRate(mutationRate),
-    currentGeneration(0)
+    currentGeneration(0),
+    rng(std::mt19937(seed))
     {}
-template GeneticAlgorithm<GeneInt>::GeneticAlgorithm(const std::size_t, const PopulationGenerator<GeneInt>, const ObjectiveFunction<GeneInt>, const SelectionFunction, const CrossoverFunction<GeneInt>, const MutationFunction<GeneInt>, double, double);
-template GeneticAlgorithm<GeneBin>::GeneticAlgorithm(const std::size_t, const PopulationGenerator<GeneBin>, const ObjectiveFunction<GeneBin>, const SelectionFunction, const CrossoverFunction<GeneBin>, const MutationFunction<GeneBin>, double, double);
-template GeneticAlgorithm<GeneReal>::GeneticAlgorithm(const std::size_t, const PopulationGenerator<GeneReal>, const ObjectiveFunction<GeneReal>, const SelectionFunction, const CrossoverFunction<GeneReal>, const MutationFunction<GeneReal>, double, double);
+template GeneticAlgorithm<GeneInt>::GeneticAlgorithm(const unsigned long, const std::size_t, const PopulationGenerator<GeneInt>, const ObjectiveFunction<GeneInt>, const SelectionFunction, const CrossoverFunction<GeneInt>, const MutationFunction<GeneInt>, double, double);
+template GeneticAlgorithm<GeneBin>::GeneticAlgorithm(const unsigned long, const std::size_t, const PopulationGenerator<GeneBin>, const ObjectiveFunction<GeneBin>, const SelectionFunction, const CrossoverFunction<GeneBin>, const MutationFunction<GeneBin>, double, double);
+template GeneticAlgorithm<GeneReal>::GeneticAlgorithm(const unsigned long, const std::size_t, const PopulationGenerator<GeneReal>, const ObjectiveFunction<GeneReal>, const SelectionFunction, const CrossoverFunction<GeneReal>, const MutationFunction<GeneReal>, double, double);
 
 
 template<class T>
@@ -96,6 +99,7 @@ void GeneticAlgorithm<T>::reset() {
     this->solution = Chromosome<T>();
     this->solutionScore = 0;
     this->currentGeneration = 0;
+    this->rng.seed(this->seed);
 }
 template void GeneticAlgorithm<GeneBin>::reset();
 template void GeneticAlgorithm<GeneInt>::reset();
@@ -104,19 +108,19 @@ template void GeneticAlgorithm<GeneReal>::reset();
 template<class T>
 void GeneticAlgorithm<T>::step() {
     if (!this->population.size()) return;
-    std::mt19937 rng {std::random_device()()};
     std::uniform_real_distribution<double> dist(0.0, 1.0);
 
     // Select individuals
-    std::vector<int> selectedIndividuals = this->selectionFunction(this->populationSize, this->populationScore);
+    std::vector<int> selectedIndividuals = this->selectionFunction(this->rng, this->populationSize, this->populationScore);
 
     // Create new population
     Population<T> newPopulation;
 
     // Crossover
     for (std::size_t i = 0; i < selectedIndividuals.size(); i += 2){
-        if (dist(rng) < this->crossoverRate){
+        if (dist(this->rng) < this->crossoverRate){
             std::vector<Chromosome<T>> crossoveredChildren = this->crossoverFunction(
+                this->rng,
                 this->population.at(selectedIndividuals.at(i)),
                 this->population.at(selectedIndividuals.at(i + 1))
             );
@@ -129,8 +133,8 @@ void GeneticAlgorithm<T>::step() {
 
     // Mutation
     for (std::size_t i = 0; i < newPopulation.size(); i++){
-        if (dist(rng) < this->mutationRate)
-            newPopulation[i] = this->mutationFunction(newPopulation.at(i));
+        if (dist(this->rng) < this->mutationRate)
+            newPopulation[i] = this->mutationFunction(this->rng, newPopulation.at(i));
     }
 
     this->population = newPopulation;

@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <vector>
+#include <random>
 
 namespace ga
 {
@@ -23,11 +24,11 @@ namespace ga
     using PopulationGenerator = std::function<Population<T>(std::size_t)>;
     template <class T>
     using ObjectiveFunction = std::function<int(Chromosome<T>)>;
-    using SelectionFunction = std::function<std::vector<int>(std::size_t, const Scores)>;
+    using SelectionFunction = std::function<std::vector<int>(std::mt19937&, std::size_t, const Scores)>;
     template <class T>
-    using CrossoverFunction = std::function<std::vector<Chromosome<T>>(Chromosome<T>, Chromosome<T>)>;
+    using CrossoverFunction = std::function<std::vector<Chromosome<T>>(std::mt19937&, Chromosome<T>, Chromosome<T>)>;
     template <class T>
-    using MutationFunction = std::function<Chromosome<T>(Chromosome<T>)>;
+    using MutationFunction = std::function<Chromosome<T>(std::mt19937&, Chromosome<T>)>;
 
     struct GenerationScoreInfo {
         Score best, worst;

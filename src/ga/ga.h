@@ -11,6 +11,7 @@
 namespace ga {
     template <class T>
     class GeneticAlgorithm{
+        const unsigned long seed;
         const std::size_t populationSize;
         const PopulationGenerator<T> populationGenerator;
         const ObjectiveFunction<T> objectiveFunction;
@@ -26,9 +27,10 @@ namespace ga {
         Chromosome<T> solution;
         Score solutionScore;
         int currentGeneration;
+        std::mt19937 rng;
 
         public:
-            GeneticAlgorithm(const std::size_t populationSize, const PopulationGenerator<T> populationGenerator, const ObjectiveFunction<T> objectiveFunction, const SelectionFunction selectionFunction, const CrossoverFunction<T> crossoverFunction, const MutationFunction<T> mutationFunction, double crossoverRate, double mutationRate);
+            GeneticAlgorithm(const unsigned long seed, std::size_t populationSize, const PopulationGenerator<T> populationGenerator, const ObjectiveFunction<T> objectiveFunction, const SelectionFunction selectionFunction, const CrossoverFunction<T> crossoverFunction, const MutationFunction<T> mutationFunction, double crossoverRate, double mutationRate);
 
             void initPopulation();
             Population<T> getPopulation() const;
