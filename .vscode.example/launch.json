@@ -1,10 +1,10 @@
 {
     "configurations": [{
-        "name": "(gdb) Launch",
+        "name": "(gdb) Launch - Func 1",
         "type": "cppdbg",
         "request": "launch",
         "program": "${workspaceFolder}/build/ocev-ga",
-        "args": ["<", "../examples/uf100-01.cnf"],
+        "args": ["../examples/confs/func1.conf"],
         "stopAtEntry": false,
         "cwd": "${workspaceFolder}/build",
         "environment": [],

@@ -14,7 +14,7 @@ namespace ga {
         const unsigned long seed;
         const std::size_t populationSize;
         const PopulationGenerator<T> populationGenerator;
-        const ObjectiveFunction<T> objectiveFunction;
+        const FitnessFunction<T> fitnessFunction;
         const SelectionFunction selectionFunction;
         const CrossoverFunction<T> crossoverFunction;
         const MutationFunction<T> mutationFunction;
@@ -30,7 +30,7 @@ namespace ga {
         std::mt19937 rng;
 
         public:
-            GeneticAlgorithm(const unsigned long seed, std::size_t populationSize, const PopulationGenerator<T> populationGenerator, const ObjectiveFunction<T> objectiveFunction, const SelectionFunction selectionFunction, const CrossoverFunction<T> crossoverFunction, const MutationFunction<T> mutationFunction, double crossoverRate, double mutationRate);
+            GeneticAlgorithm(const unsigned long seed, std::size_t populationSize, const PopulationGenerator<T> populationGenerator, const FitnessFunction<T> fitnessFunction, const SelectionFunction selectionFunction, const CrossoverFunction<T> crossoverFunction, const MutationFunction<T> mutationFunction, double crossoverRate, double mutationRate);
 
             void initPopulation();
             Population<T> getPopulation() const;

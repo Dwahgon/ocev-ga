@@ -17,18 +17,18 @@ namespace ga
     template <typename T>
     using Population = std::vector<Chromosome<T>>;
 
-    using Score = int;
-    using Scores = std::vector<int>;
+    using Score = double;
+    using Scores = std::vector<double>;
 
     template <class T>
     using PopulationGenerator = std::function<Population<T>(std::size_t)>;
     template <class T>
-    using ObjectiveFunction = std::function<int(Chromosome<T>)>;
-    using SelectionFunction = std::function<std::vector<int>(std::mt19937&, std::size_t, const Scores)>;
+    using FitnessFunction = std::function<Score(Chromosome<T>)>;
+    using SelectionFunction = std::function<std::vector<std::size_t>(std::mt19937&, std::size_t, const Scores)>;
     template <class T>
     using CrossoverFunction = std::function<std::vector<Chromosome<T>>(std::mt19937&, Chromosome<T>, Chromosome<T>)>;
     template <class T>
-    using MutationFunction = std::function<Chromosome<T>(std::mt19937&, Chromosome<T>)>;
+    using MutationFunction = std::function<Chromosome<T>(std::mt19937&, Chromosome<T>, double p_m)>;
 
     struct GenerationScoreInfo {
         Score best, worst;

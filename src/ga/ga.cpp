@@ -10,7 +10,7 @@ GeneticAlgorithm<T>::GeneticAlgorithm(
     const unsigned long seed,
     const std::size_t populationSize,
     const PopulationGenerator<T> populationGenerator,
-    const ObjectiveFunction<T> objectiveFunction,
+    const FitnessFunction<T> fitnessFunction,
     const SelectionFunction selectionFunction,
     const CrossoverFunction<T> crossoverFunction,
     const MutationFunction<T> mutationFunction,
@@ -20,7 +20,7 @@ GeneticAlgorithm<T>::GeneticAlgorithm(
     : seed(seed),
     populationSize(populationSize),
     populationGenerator(populationGenerator),
-    objectiveFunction(objectiveFunction),
+    fitnessFunction(fitnessFunction),
     selectionFunction(selectionFunction),
     crossoverFunction(crossoverFunction),
     mutationFunction(mutationFunction),
@@ -29,9 +29,9 @@ GeneticAlgorithm<T>::GeneticAlgorithm(
     currentGeneration(0),
     rng(std::mt19937(seed))
     {}
-template GeneticAlgorithm<GeneInt>::GeneticAlgorithm(const unsigned long, const std::size_t, const PopulationGenerator<GeneInt>, const ObjectiveFunction<GeneInt>, const SelectionFunction, const CrossoverFunction<GeneInt>, const MutationFunction<GeneInt>, double, double);
-template GeneticAlgorithm<GeneBin>::GeneticAlgorithm(const unsigned long, const std::size_t, const PopulationGenerator<GeneBin>, const ObjectiveFunction<GeneBin>, const SelectionFunction, const CrossoverFunction<GeneBin>, const MutationFunction<GeneBin>, double, double);
-template GeneticAlgorithm<GeneReal>::GeneticAlgorithm(const unsigned long, const std::size_t, const PopulationGenerator<GeneReal>, const ObjectiveFunction<GeneReal>, const SelectionFunction, const CrossoverFunction<GeneReal>, const MutationFunction<GeneReal>, double, double);
+template GeneticAlgorithm<GeneInt>::GeneticAlgorithm(const unsigned long, const std::size_t, const PopulationGenerator<GeneInt>, const FitnessFunction<GeneInt>, const SelectionFunction, const CrossoverFunction<GeneInt>, const MutationFunction<GeneInt>, double, double);
+template GeneticAlgorithm<GeneBin>::GeneticAlgorithm(const unsigned long, const std::size_t, const PopulationGenerator<GeneBin>, const FitnessFunction<GeneBin>, const SelectionFunction, const CrossoverFunction<GeneBin>, const MutationFunction<GeneBin>, double, double);
+template GeneticAlgorithm<GeneReal>::GeneticAlgorithm(const unsigned long, const std::size_t, const PopulationGenerator<GeneReal>, const FitnessFunction<GeneReal>, const SelectionFunction, const CrossoverFunction<GeneReal>, const MutationFunction<GeneReal>, double, double);
 
 
 template<class T>
@@ -55,7 +55,7 @@ template<class T>
 void GeneticAlgorithm<T>::calculatePopulationScore(){
     this->populationScore.clear();
     for (const auto& chromossome : this->population){
-        populationScore.push_back(this->objectiveFunction(chromossome));
+        populationScore.push_back(this->fitnessFunction(chromossome));
     }
 
     std::size_t bestIndividualIndex = this->getCurrentBestIndividualIndex();
@@ -111,7 +111,7 @@ void GeneticAlgorithm<T>::step() {
     std::uniform_real_distribution<double> dist(0.0, 1.0);
 
     // Select individuals
-    std::vector<int> selectedIndividuals = this->selectionFunction(this->rng, this->populationSize, this->populationScore);
+    std::vector<std::size_t> selectedIndividuals = this->selectionFunction(this->rng, this->populationSize, this->populationScore);
 
     // Create new population
     Population<T> newPopulation;
@@ -133,8 +133,7 @@ void GeneticAlgorithm<T>::step() {
 
     // Mutation
     for (std::size_t i = 0; i < newPopulation.size(); i++){
-        if (dist(this->rng) < this->mutationRate)
-            newPopulation[i] = this->mutationFunction(this->rng, newPopulation.at(i));
+        newPopulation[i] = this->mutationFunction(this->rng, newPopulation.at(i), this->mutationRate);
     }
 
     this->population = newPopulation;

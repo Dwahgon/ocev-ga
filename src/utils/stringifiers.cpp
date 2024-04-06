@@ -33,6 +33,13 @@ std::string chromosomeToString(ga::Chromosome<T> chromosome, unsigned int binSiz
         else
             stringStream << chromosome.at(i) << ' ';
     }
+    if (binSize){
+        stringStream << '\n';
+        for (std::size_t i = 0; i < chromosome.size(); i++)
+        {
+            stringStream << chromosome.at(i) << ' ';
+        }
+    }
     return stringStream.str();
 }
 template std::string chromosomeToString(ga::Chromosome<ga::GeneBin>, unsigned int);
@@ -53,7 +60,7 @@ template std::string populationToString(ga::Population<ga::GeneInt>, unsigned in
 // template std::string populationToString(ga::Population<ga::GeneIntPerm>, unsigned int);
 template std::string populationToString(ga::Population<ga::GeneReal>, unsigned int);
 
-std::string scoresToString(std::vector<int> scores){
+std::string scoresToString(ga::Scores scores){
     std::ostringstream stringStream;
     for (std::size_t i = 0; i < scores.size(); i++){
         std::cout << (i+1) << ":\t" << scores.at(i) << (i != scores.size() - 1 ? "\n" : " ");
