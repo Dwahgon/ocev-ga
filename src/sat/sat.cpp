@@ -2,6 +2,7 @@
 
 #include <math.h>
 
+sat::Clause::Clause() {}
 sat::Clause::Clause(const std::vector<int> _clause) : clause(_clause) {}
 
 std::size_t sat::Clause::score(const std::vector<unsigned int> &values) const
@@ -31,6 +32,7 @@ bool sat::Clause::solve(const std::vector<unsigned int> &values) const
     return false;
 }
 
+sat::Formula::Formula() {}
 sat::Formula::Formula(const std::vector<Clause> _clauses) : clauses(_clauses) {}
 
 std::size_t sat::Formula::score(const std::vector<unsigned int> &values) const

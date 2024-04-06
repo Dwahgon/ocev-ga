@@ -5,7 +5,7 @@
 using namespace ga;
 
 
-std::vector<Chromosome<GeneBin>> ga::binOnePointCrossover(std::mt19937& rng, Chromosome<GeneBin> father, Chromosome<GeneBin> mother, std::size_t binSize){
+std::vector<Chromosome<GeneBin>> ga::binOnePointCrossover(std::mt19937& rng, const Chromosome<GeneBin>& father, const Chromosome<GeneBin>& mother, std::size_t binSize){
     std::uniform_int_distribution<std::size_t> dist(1, binSize - 2);
 
     std::size_t maxIndex = (binSize - 1) / 32;

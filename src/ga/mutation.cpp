@@ -4,7 +4,7 @@
 
 using namespace ga;
 
-Chromosome<GeneBin> ga::bitwiseMutation(std::mt19937& rng, const Chromosome<GeneBin> chromosome, std::size_t binSize, double p_m){
+Chromosome<GeneBin> ga::bitwiseMutation(std::mt19937& rng, const Chromosome<GeneBin>& chromosome, std::size_t binSize, double p_m){
     std::uniform_real_distribution<double> dist(0.0, 1.0);
     Chromosome<GeneBin> result;
     GeneBin currentGene, mask;

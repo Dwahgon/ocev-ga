@@ -1,6 +1,6 @@
 #include "selection.h"
 
-std::vector<std::size_t> ga::rouletteWheelSelection(std::mt19937& rng, std::size_t amount, ga::Scores scores){
+std::vector<std::size_t> ga::rouletteWheelSelection(std::mt19937& rng, std::size_t amount, const ga::Scores& scores){
     // Calculate total population score
     std::uniform_real_distribution<double> dist(0.0, 1.0);
     Score totalScore {0};

@@ -28,7 +28,7 @@ unsigned int extractBitsFromBinChromosome(Chromosome<GeneBin> chromosome, std::s
     return (chromosome.at(indexStart) & (maskStart & maskEnd)) >> (startBitmapI % 32);
 }
 
-double binToRealFitness(std::function<double(std::vector<double>)> objectiveFunction, bool maximize, Chromosome<GeneBin> source, std::size_t sourceDim, double Xmin, double Xmax, int precision, double C){
+double binToRealFitness(std::function<double(std::vector<double>)> objectiveFunction, bool maximize, const Chromosome<GeneBin>& source, std::size_t sourceDim, double Xmin, double Xmax, int precision, double C){
     std::vector<double> objFuncInput;
     std::size_t L {calculateBinToRealBitSize(Xmin, Xmax, precision)},
         targetDim = (sourceDim - (sourceDim != 0)) / L + 1;
@@ -39,6 +39,12 @@ double binToRealFitness(std::function<double(std::vector<double>)> objectiveFunc
         : (objFuncValue < C ? C - objFuncValue : 0.0); // M<
 }
 
-FitnessFunction<GeneBin> ga::createBinToRealFitness(std::function<double(std::vector<double>)> objectiveFunction, bool maximize, std::size_t sourceDim, double Xmin, double Xmax, int precision, double C){
+FitnessFunction<GeneBin> ga::createBinToRealFitness(std::function<double(const std::vector<double>&)> objectiveFunction, bool maximize, std::size_t sourceDim, double Xmin, double Xmax, int precision, double C){
     return std::bind(binToRealFitness, objectiveFunction, maximize, std::placeholders::_1, sourceDim, Xmin, Xmax, precision, C);
 }
+
+template <class T>
+FitnessFunction<T> ga::objectiveIntToScore(std::function<int(const Chromosome<T>&)> objectiveFunction){
+    return [objectiveFunction](const Chromosome<T>& chromosome){return (double_t)objectiveFunction(chromosome);};
+}
+template FitnessFunction<GeneBin> ga::objectiveIntToScore(std::function<int(const Chromosome<GeneBin>&)> objectiveFunction);

@@ -55,19 +55,23 @@ MutationEnum stringToMutationEnum(std::string const& s){
 }
 
 enum ObjectiveEnum {
-    FUNC1
+    FUNC1,
+    SAT,
 };
 ObjectiveEnum stringToObjectiveEnum(std::string const& s){
     if(s == "func1") return FUNC1;
+    if(s == "sat") return SAT;
     std::cout << "Invalid objective function: " << s;
     exit(1);
 }
 
 enum FitnessEnum {
-    BIN_TO_REAL
+    EQ_OBJECTIVE,
+    BIN_TO_REAL,
 };
 FitnessEnum stringToFitnessEnum(std::string const& s){
     if(s == "bintoreal") return BIN_TO_REAL;
+    if(s == "eqobjective") return EQ_OBJECTIVE;
     std::cout << "Invalid fitness function: " << s;
     exit(1);
 }
@@ -80,7 +84,7 @@ int main(int argc, char* argv[])
     confmap confs {parseConf(confPath)};
     std::size_t     dim             {std::stoul(confs.at("DIM"))},
                     pop             {std::stoul(confs.at("POP"))},
-                    precision       {std::stoul(confs.at("PRECISION"))},
+                    precision       {confs.count("PRECISION") ? std::stoul(confs.at("PRECISION")) : 0},
                     generations     {std::stoul(confs.at("GENERATIONS"))};
     std::string     representation  {confs.at("REPRESENTATION")},
                     selection       {confs.at("SELECTION")},
@@ -90,7 +94,7 @@ int main(int argc, char* argv[])
                     fitness         {confs.at("FITNESS")};
     double          crossoverRate   {std::stod(confs.at("CROSSOVER_RATE"))},
                     mutationRate    {std::stod(confs.at("MUTATION_RATE"))},
-                    C               {std::stod(confs.at("C"))};
+                    C               {confs.count("C") ? std::stod(confs.at("C")) : 0.0};
     bool            maximize        {confs.at("MAXIMIZE") == "true"};
     unsigned long   seed            {confs.count("SEED") && confs.at("SEED").length() ? std::stoul(confs.at("SEED")) : std::random_device()()};
     [[maybe_unused]]
@@ -115,22 +119,43 @@ int main(int argc, char* argv[])
     case BINARY: {
         // Configure fitness function
         ga::FitnessFunction<ga::GeneBin> fitnessFunc;
+        sat::Formula formula;
         switch (stringToFitnessEnum(fitness))
         {
-        case BIN_TO_REAL:{
+        case BIN_TO_REAL: {
             // Configure objective function
             std::function<double(std::vector<double>)> objectiveFunc;
             switch (stringToObjectiveEnum(objective))
             {
-            case FUNC1:
+            case FUNC1:{
                 objectiveFunc = [](std::vector<double>xs) {return func1(xs.at(0));};
                 break;
+            }
+            default:
+                std::cout << "Fitness function " << fitness << " with objective function" << objective << " is not supported" << std::endl;
+                exit(1);
             }
 
             dim = ga::calculateBinToRealBitSize(rstart, rend, precision);
             fitnessFunc = ga::createBinToRealFitness(objectiveFunc, maximize, dim, rstart, rend, precision, C);
 
             break;
+        } case EQ_OBJECTIVE: {
+            // Configure objective function
+            std::function<ga::Score(ga::Chromosome<ga::GeneBin>)> objectiveFunc;
+            switch (stringToObjectiveEnum(objective))
+            {
+            case SAT:{
+                formula = parseDimacsFormula(std::cin);
+                objectiveFunc = std::bind(&sat::Formula::score, &formula, std::placeholders::_1);
+                break;
+            }
+            default:{
+                std::cout << "Fitness function " << fitness << " with objective function" << objective << " is not supported" << std::endl;
+                exit(1);
+            }
+            }
+            fitnessFunc = objectiveFunc;
         }
         }
 
