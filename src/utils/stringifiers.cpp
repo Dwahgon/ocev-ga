@@ -93,9 +93,9 @@ std::string gaGenerationScoreInfoToString(ga::GeneticAlgorithm<T> &ga){
     std::ostringstream stringStream;
 
     stringStream << currentGeneration << ": "
-        << "best score: " << generationScoreInfo.best << "; "
-        << "worst score: " << generationScoreInfo.worst << "; "
-        << "average score: " << generationScoreInfo.avg << "; "
+        << "best fitness: " << generationScoreInfo.best << "; "
+        << "worst fitness: " << generationScoreInfo.worst << "; "
+        << "average fitness: " << generationScoreInfo.avg << "; "
         << "standard deviation: " << generationScoreInfo.stdDeviation;
     return stringStream.str();
 }
@@ -105,16 +105,17 @@ template std::string gaGenerationScoreInfoToString(ga::GeneticAlgorithm<ga::Gene
 template std::string gaGenerationScoreInfoToString(ga::GeneticAlgorithm<ga::GeneReal> &ga);
 
 template <typename T>
-std::string gaSolutionToString(ga::GeneticAlgorithm<T> &ga, std::size_t dim){
+std::string gaSolutionToString(ga::GeneticAlgorithm<T> &ga, std::size_t dim, double C){
     ga::GeneticAlgorithmSolution<T> solution {ga.getSolution()};
     std::ostringstream stringStream;
 
     stringStream << chromosomeToString(solution.chromosome, dim)
-        << "\nScore:\t" << solution.score;
+        << "\nFitness:\t" << solution.score
+        << "\nFitness - Worst Case Offset:\t" << solution.score - C;
 
     return stringStream.str();
 }
-template std::string gaSolutionToString(ga::GeneticAlgorithm<ga::GeneBin> &ga, std::size_t dim);
-template std::string gaSolutionToString(ga::GeneticAlgorithm<ga::GeneInt> &ga, std::size_t dim);
-// template std::string gaSolutionToString(ga::Population<ga::GeneIntPerm>, unsigned int);
-template std::string gaSolutionToString(ga::GeneticAlgorithm<ga::GeneReal> &ga, std::size_t dim);
+template std::string gaSolutionToString(ga::GeneticAlgorithm<ga::GeneBin> &ga, std::size_t dim, double C);
+template std::string gaSolutionToString(ga::GeneticAlgorithm<ga::GeneInt> &ga, std::size_t dim, double C);
+// template std::string gaSolutionToString(ga::Population<ga::GeneIntPerm>, unsigned int, double C);
+template std::string gaSolutionToString(ga::GeneticAlgorithm<ga::GeneReal> &ga, std::size_t dim, double C);

@@ -23,13 +23,19 @@ namespace ga{
         virtual Score score(const Chromosome<T>& chromosome) const;
     };
 
+    template<class T>
+    struct Range{
+        T Xmin, Xmax;
+        std::size_t precision;
+    };
+
     template <class T>
     class BinaryToNumericConversionFitness{
         Fitness<T> originalFitness;
-        const T Xmin, Xmax;
-        const std::size_t bitSize, chromosomeDim;
+        std::vector<Range<T>> chromosomeRanges;
+        std::vector<std::size_t> bitSizes;
     public:
-        BinaryToNumericConversionFitness(Fitness<T> originalFitness, T Xmin, T Xmax, std::size_t precision, std::size_t chromosomeDim);
+        BinaryToNumericConversionFitness(Fitness<T> originalFitness, std::vector<Range<T>> chromosomeRanges);
 
         Score score(const Chromosome<GeneBin>& chromosome) const;
 

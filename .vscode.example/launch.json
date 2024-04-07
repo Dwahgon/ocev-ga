@@ -1,10 +1,34 @@
 {
     "configurations": [{
-        "name": "(gdb) Launch - Func 1",
+        "name": "(gdb) Launch - Max Func 1",
         "type": "cppdbg",
         "request": "launch",
         "program": "${workspaceFolder}/build/ocev-ga",
-        "args": ["../examples/confs/func1.conf"],
+        "args": ["../examples/confs/max_func1.conf"],
+        "stopAtEntry": false,
+        "cwd": "${workspaceFolder}/build",
+        "environment": [],
+        "externalConsole": false,
+        "MIMode": "gdb",
+        "setupCommands": [
+            {
+                "description": "Enable pretty-printing for gdb",
+                "text": "-enable-pretty-printing",
+                "ignoreFailures": true
+            },
+            {
+                "description": "Set Disassembly Flavor to Intel",
+                "text": "-gdb-set disassembly-flavor intel",
+                "ignoreFailures": true
+            }
+        ],
+        "preLaunchTask": "C/C++: make"
+    },{
+        "name": "(gdb) Launch - Min Func 1",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/build/ocev-ga",
+        "args": ["../examples/confs/min_func1.conf"],
         "stopAtEntry": false,
         "cwd": "${workspaceFolder}/build",
         "environment": [],
@@ -29,6 +53,30 @@
         "request": "launch",
         "program": "${workspaceFolder}/build/ocev-ga",
         "args": ["../examples/confs/sat.conf", "<", "../examples/sat/uf100-01.cnf"],
+        "stopAtEntry": false,
+        "cwd": "${workspaceFolder}/build",
+        "environment": [],
+        "externalConsole": false,
+        "MIMode": "gdb",
+        "setupCommands": [
+            {
+                "description": "Enable pretty-printing for gdb",
+                "text": "-enable-pretty-printing",
+                "ignoreFailures": true
+            },
+            {
+                "description": "Set Disassembly Flavor to Intel",
+                "text": "-gdb-set disassembly-flavor intel",
+                "ignoreFailures": true
+            }
+        ],
+        "preLaunchTask": "C/C++: make"
+    },{
+        "name": "(gdb) Launch - Radio",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/build/ocev-ga",
+        "args": ["../examples/confs/radio.conf"],
         "stopAtEntry": false,
         "cwd": "${workspaceFolder}/build",
         "environment": [],

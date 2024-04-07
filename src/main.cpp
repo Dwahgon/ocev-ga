@@ -57,10 +57,12 @@ MutationEnum stringToMutationEnum(std::string const& s){
 enum ObjectiveEnum {
     FUNC1,
     SAT,
+    RADIO,
 };
 ObjectiveEnum stringToObjectiveEnum(std::string const& s){
     if(s == "func1") return FUNC1;
     if(s == "sat") return SAT;
+    if(s == "radio") return RADIO;
     std::cout << "Invalid objective function: " << s;
     exit(1);
 }
@@ -71,26 +73,28 @@ int main(int argc, char* argv[])
 
     // Load conf
     confmap confs {parseConf(confPath)};
-    std::size_t     dim             {std::stoul(confs.at("DIM"))},
-                    pop             {std::stoul(confs.at("POP"))},
-                    precision       {confs.count("PRECISION") ? std::stoul(confs.at("PRECISION")) : 0},
-                    generations     {std::stoul(confs.at("GENERATIONS"))};
-    std::string     representation  {confs.at("REPRESENTATION")},
-                    selection       {confs.at("SELECTION")},
-                    crossover       {confs.at("CROSSOVER")},
-                    mutation        {confs.at("MUTATION")},
-                    objective       {confs.at("OBJECTIVE")};
-    double          crossoverRate   {std::stod(confs.at("CROSSOVER_RATE"))},
-                    mutationRate    {std::stod(confs.at("MUTATION_RATE"))},
-                    C               {confs.count("C") ? std::stod(confs.at("C")) : 0.0};
-    bool            maximize        {confs.at("MAXIMIZE") == "true"};
-    unsigned long   seed            {confs.count("SEED") && confs.at("SEED").length() ? std::stoul(confs.at("SEED")) : std::random_device()()};
+    std::size_t     dim                 {std::stoul(confs.at("DIM"))},
+                    pop                 {std::stoul(confs.at("POP"))},
+                    precision           {confs.count("PRECISION") ? std::stoul(confs.at("PRECISION")) : 0},
+                    generations         {std::stoul(confs.at("GENERATIONS"))};
+    std::string     representation      {confs.at("REPRESENTATION")},
+                    selection           {confs.at("SELECTION")},
+                    crossover           {confs.at("CROSSOVER")},
+                    mutation            {confs.at("MUTATION")},
+                    objective           {confs.at("OBJECTIVE")};
+    double          crossoverRate       {std::stod(confs.at("CROSSOVER_RATE"))},
+                    mutationRate        {std::stod(confs.at("MUTATION_RATE"))},
+                    worstCaseOffset     {confs.count("WORST_CASE_OFFSET") ? std::stod(confs.at("WORST_CASE_OFFSET")) : 0.0},
+                    inequalityPenalty   {confs.count("INEQUALITY_PENALTY") ? std::stod(confs.at("INEQUALITY_PENALTY")) : 0.0},
+                    equalityPenalty     {confs.count("EQUALITY_PENALTY") ? std::stod(confs.at("EQUALITY_PENALTY")) : 0.0};
+    bool            maximize            {confs.at("MAXIMIZE") == "true"};
+    unsigned long   seed                {confs.count("SEED") && confs.at("SEED").length() ? std::stoul(confs.at("SEED")) : std::random_device()()};
     [[maybe_unused]]
-    ga::GeneInt     istart          {std::stoi(confs.count("INT_RANGE_START")   ? confs.at("INT_RANGE_START")   : std::to_string(INT32_MIN))},
-                    iend            {std::stoi(confs.count("INT_RANGE_END")     ? confs.at("INT_RANGE_END")     : std::to_string(INT32_MAX))};
+    ga::GeneInt     istart              {std::stoi(confs.count("INT_RANGE_START")   ? confs.at("INT_RANGE_START")   : std::to_string(INT32_MIN))},
+                    iend                {std::stoi(confs.count("INT_RANGE_END")     ? confs.at("INT_RANGE_END")     : std::to_string(INT32_MAX))};
     [[maybe_unused]]
-    ga::GeneReal    rstart          {std::stod(confs.count("REAL_RANGE_START")  ? confs.at("REAL_RANGE_START")  : std::to_string(DBL_MIN))},
-                    rend            {std::stod(confs.count("REAL_RANGE_END")    ? confs.at("REAL_RANGE_END")    : std::to_string(DBL_MAX))};
+    ga::GeneReal    rstart              {std::stod(confs.count("REAL_RANGE_START")  ? confs.at("REAL_RANGE_START")  : std::to_string(DBL_MIN))},
+                    rend                {std::stod(confs.count("REAL_RANGE_END")    ? confs.at("REAL_RANGE_END")    : std::to_string(DBL_MAX))};
 
     // Configure selection function
     ga::SelectionFunction selectionFunc;
@@ -106,7 +110,8 @@ int main(int argc, char* argv[])
     {
     case BINARY: {
         // Configure fitness function
-        ga::BinaryToNumericConversionFitness<double>* binToNumericConversionFitness = NULL;
+        ga::BinaryToNumericConversionFitness<double>* binToDoubleConversionFitness = NULL;
+        ga::BinaryToNumericConversionFitness<unsigned int>* binToUIConversionFitness = NULL;
         sat::Formula *formula = NULL;
         ga::FitnessFunction<ga::GeneBin> fitnessFunc;
         switch (stringToObjectiveEnum(objective))
@@ -119,8 +124,38 @@ int main(int argc, char* argv[])
         case FUNC1: {
             dim = ga::BinaryToNumericConversionFitness<ga::GeneReal>::binToNumericBitSize(rstart, rend, precision);
             auto objectiveFunc = [](std::vector<double>xs) {return func1(xs.at(0));};
-            binToNumericConversionFitness = new ga::BinaryToNumericConversionFitness<double>(ga::Fitness<double> {objectiveFunc, std::vector<ga::Restriction<double>>{}, std::vector<ga::Restriction<double>>{}, 0., 0., C, maximize}, rstart, rend, precision, dim);
-            fitnessFunc = std::bind(&ga::BinaryToNumericConversionFitness<ga::GeneReal>::score, binToNumericConversionFitness, std::placeholders::_1);
+            binToDoubleConversionFitness = new ga::BinaryToNumericConversionFitness<double>(
+                ga::Fitness<double> {
+                    objectiveFunc,
+                    {},
+                    {},
+                    0.,
+                    0.,
+                    worstCaseOffset,
+                    maximize
+                },
+                {{rstart, rend, precision}}
+            );
+            fitnessFunc = std::bind(&ga::BinaryToNumericConversionFitness<ga::GeneReal>::score, binToDoubleConversionFitness, std::placeholders::_1);
+            break;
+        }case RADIO: {
+            dim = 10;
+            auto spread = [](std::function<double(unsigned int, unsigned int)> f){
+                return [f](std::vector<unsigned int>xs) {return f(xs.at(0), xs.at(1));};
+            };
+            binToUIConversionFitness = new ga::BinaryToNumericConversionFitness<unsigned int>(
+                ga::Fitness<unsigned int> {
+                    spread(radioFactory),
+                    {spread(radioFactoryR5)},
+                    {},
+                    inequalityPenalty,
+                    equalityPenalty,
+                    worstCaseOffset,
+                    maximize
+                },
+                {{0, 24, 0}, {0, 16, 0}}
+            );
+            fitnessFunc = std::bind(&ga::BinaryToNumericConversionFitness<unsigned int>::score, binToUIConversionFitness, std::placeholders::_1);
             break;
         }
         default: {
@@ -164,19 +199,21 @@ int main(int argc, char* argv[])
         };
 
         // Print conf
-        std::cout   << "POP: "              << pop              << '\n'
-                    << "DIM: "              << dim              << '\n'
-                    << "GENERATIONS: "      << generations      << '\n'
-                    << "OBJECTIVE: "        << objective        << '\n'
-                    << "SELECTION: "        << selection        << '\n'
-                    << "CROSSOVER: "        << crossover        << '\n'
-                    << "CROSSOVER RATE: "   << crossoverRate    << '\n'
-                    << "MUTATION: "         << mutation         << '\n'
-                    << "MUTATION RATE: "    << mutationRate     << '\n'
-                    << "PRECISION: "        << precision        << '\n'
-                    << "C: "                << C                << '\n'
-                    << "MAXIMIZE: "         << maximize         << '\n'
-                    << "SEED: "             << seed             << std::endl;
+        std::cout   << "POP: "                  << pop                  << '\n'
+                    << "DIM: "                  << dim                  << '\n'
+                    << "GENERATIONS: "          << generations          << '\n'
+                    << "OBJECTIVE: "            << objective            << '\n'
+                    << "SELECTION: "            << selection            << '\n'
+                    << "CROSSOVER: "            << crossover            << '\n'
+                    << "CROSSOVER RATE: "       << crossoverRate        << '\n'
+                    << "MUTATION: "             << mutation             << '\n'
+                    << "MUTATION RATE: "        << mutationRate         << '\n'
+                    << "PRECISION: "            << precision            << '\n'
+                    << "WORST_CASE_OFFSET: "    << worstCaseOffset      << '\n'
+                    << "INEQUALITY_PENALTY"     << inequalityPenalty    << '\n'
+                    << "EQUALITY_PENALTY"       << equalityPenalty      << '\n'
+                    << "MAXIMIZE: "             << maximize             << '\n'
+                    << "SEED: "                 << seed                 << std::endl;
 
         // Start population
         geneticAlgorithm.initPopulation();
@@ -186,8 +223,9 @@ int main(int argc, char* argv[])
             geneticAlgorithm.step();
             std::cout << gaGenerationScoreInfoToString(geneticAlgorithm) << std::endl;
         }
-        std::cout << gaSolutionToString(geneticAlgorithm, dim) << std::endl;
-        delete binToNumericConversionFitness;
+        std::cout << gaSolutionToString(geneticAlgorithm, dim, worstCaseOffset) << std::endl;
+        delete binToDoubleConversionFitness;
+        delete binToUIConversionFitness;
         delete formula;
         break;
     }

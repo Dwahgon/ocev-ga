@@ -20,6 +20,6 @@ template <typename T>
 std::string gaGenerationScoreInfoToString(ga::GeneticAlgorithm<T> &ga);
 
 template <typename T>
-std::string gaSolutionToString(ga::GeneticAlgorithm<T> &ga, std::size_t dim);
+std::string gaSolutionToString(ga::GeneticAlgorithm<T> &ga, std::size_t dim, double C);
 
 #endif
