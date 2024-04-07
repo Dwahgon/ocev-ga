@@ -28,6 +28,9 @@ namespace ga {
         Score solutionScore;
         int currentGeneration;
         std::mt19937 rng;
+        std::vector<GenerationScoreInfo> convergenceTable;
+
+        void setPopulation(const Population<T> population);
 
         public:
             GeneticAlgorithm(const unsigned long seed, std::size_t populationSize, const PopulationGenerator<T> populationGenerator, const FitnessFunction<T> fitnessFunction, const SelectionFunction selectionFunction, const CrossoverFunction<T> crossoverFunction, const MutationFunction<T> mutationFunction, double crossoverRate, double mutationRate);
@@ -46,6 +49,7 @@ namespace ga {
             std::size_t getCurrentWorstIndividualIndex() const;
 
             GeneticAlgorithmSolution<T> getSolution() const;
+            std::vector<GenerationScoreInfo> getConvergenceTable() const;
 
             void step();
 

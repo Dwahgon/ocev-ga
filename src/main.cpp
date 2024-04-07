@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include <float.h>
+#include <fstream>
 
 enum RepresentationEnum {
     BINARY,
@@ -69,7 +70,7 @@ ObjectiveEnum stringToObjectiveEnum(std::string const& s){
 
 int main(int argc, char* argv[])
 {
-    std::string confPath {argc > 1 ? argv[1] : "conf.conf"};
+    std::string confPath {argc > 1 ? argv[1] : "conf.conf"}, outPath {argc > 2 ? argv[2] : "out.csv"};
 
     // Load conf
     confmap confs {parseConf(confPath)};
@@ -225,6 +226,11 @@ int main(int argc, char* argv[])
             std::cout << gaGenerationScoreInfoToString(geneticAlgorithm) << std::endl;
         }
         std::cout << gaSolutionToString(geneticAlgorithm, dim, worstCaseOffset) << std::endl;
+
+        std::ofstream out(outPath);
+        out << gaConvergenceTableToString(geneticAlgorithm);
+        out.close();
+
         delete binToDoubleConversionFitness;
         delete binToUIConversionFitness;
         delete formula;

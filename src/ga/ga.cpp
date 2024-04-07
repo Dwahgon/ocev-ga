@@ -36,8 +36,7 @@ template GeneticAlgorithm<GeneReal>::GeneticAlgorithm(const unsigned long, const
 
 template<class T>
 void GeneticAlgorithm<T>::initPopulation(){
-    this->population = this->populationGenerator(this->populationSize);
-    this->calculatePopulationScore();
+    this->setPopulation(this->populationGenerator(this->populationSize));
 }
 template void GeneticAlgorithm<GeneBin>::initPopulation();
 template void GeneticAlgorithm<GeneInt>::initPopulation();
@@ -100,10 +99,21 @@ void GeneticAlgorithm<T>::reset() {
     this->solutionScore = 0;
     this->currentGeneration = 0;
     this->rng.seed(this->seed);
+    this->convergenceTable.clear();
 }
 template void GeneticAlgorithm<GeneBin>::reset();
 template void GeneticAlgorithm<GeneInt>::reset();
 template void GeneticAlgorithm<GeneReal>::reset();
+
+template<class T>
+void GeneticAlgorithm<T>::setPopulation(const Population<T> population){
+    this->population = population;
+    this->calculatePopulationScore();
+    this->convergenceTable.push_back(this->calculateGenerationScoreInfo());
+}
+template void GeneticAlgorithm<GeneBin>::setPopulation(const Population<GeneBin> population);
+template void GeneticAlgorithm<GeneInt>::setPopulation(const Population<GeneInt> population);
+template void GeneticAlgorithm<GeneReal>::setPopulation(const Population<GeneReal> population);
 
 template<class T>
 void GeneticAlgorithm<T>::step() {
@@ -136,8 +146,7 @@ void GeneticAlgorithm<T>::step() {
         newPopulation[i] = this->mutationFunction(this->rng, newPopulation.at(i), this->mutationRate);
     }
 
-    this->population = newPopulation;
-    this->calculatePopulationScore();
+    this->setPopulation(newPopulation);
 
     this->currentGeneration++;
 }
@@ -180,3 +189,11 @@ GeneticAlgorithmSolution<T> ga::GeneticAlgorithm<T>::getSolution() const{
 template GeneticAlgorithmSolution<GeneBin> ga::GeneticAlgorithm<GeneBin>::getSolution() const;
 template GeneticAlgorithmSolution<GeneInt> ga::GeneticAlgorithm<GeneInt>::getSolution() const;
 template GeneticAlgorithmSolution<GeneReal> ga::GeneticAlgorithm<GeneReal>::getSolution() const;
+
+template<class T>
+std::vector<GenerationScoreInfo> GeneticAlgorithm<T>::getConvergenceTable() const{
+    return this->convergenceTable;
+}
+template std::vector<GenerationScoreInfo> ga::GeneticAlgorithm<GeneBin>::getConvergenceTable() const;
+template std::vector<GenerationScoreInfo> ga::GeneticAlgorithm<GeneInt>::getConvergenceTable() const;
+template std::vector<GenerationScoreInfo> ga::GeneticAlgorithm<GeneReal>::getConvergenceTable() const;

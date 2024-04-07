@@ -119,3 +119,23 @@ template std::string gaSolutionToString(ga::GeneticAlgorithm<ga::GeneBin> &ga, s
 template std::string gaSolutionToString(ga::GeneticAlgorithm<ga::GeneInt> &ga, std::size_t dim, double C);
 // template std::string gaSolutionToString(ga::Population<ga::GeneIntPerm>, unsigned int, double C);
 template std::string gaSolutionToString(ga::GeneticAlgorithm<ga::GeneReal> &ga, std::size_t dim, double C);
+
+template <class T>
+std::string gaConvergenceTableToString(ga::GeneticAlgorithm<T> &ga){
+    std::ostringstream stringStream;
+    std::size_t i {0};
+    stringStream << "generation,best,worst,average,std_dev\n";
+    for(const ga::GenerationScoreInfo &info : ga.getConvergenceTable()){
+        stringStream    << i                    << ","
+                        << info.best            << ","
+                        << info.worst           << ","
+                        << info.avg             << ","
+                        << info.stdDeviation    << "\n";
+        i++;
+    }
+    return stringStream.str();
+}
+template std::string gaConvergenceTableToString(ga::GeneticAlgorithm<ga::GeneBin> &ga);
+template std::string gaConvergenceTableToString(ga::GeneticAlgorithm<ga::GeneInt> &ga);
+// template std::string gaGenerationScoreInfoToString(ga::Population<ga::GeneIntPerm>);
+template std::string gaConvergenceTableToString(ga::GeneticAlgorithm<ga::GeneReal> &ga);
