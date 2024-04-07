@@ -32,8 +32,23 @@ bool sat::Clause::solve(const std::vector<unsigned int> &values) const
     return false;
 }
 
-sat::Formula::Formula() {}
-sat::Formula::Formula(const std::vector<Clause> _clauses) : clauses(_clauses) {}
+const std::vector<int> sat::Clause::getClause() const{
+    return this->clause;
+}
+
+std::size_t calculateVarCount(const std::vector<sat::Clause>& _clauses){
+    std::size_t varCount {0};
+    for(auto &clause : _clauses){
+        for(auto &var : clause.getClause()){
+            if (abs(var) > varCount)
+                varCount = abs(var);
+        }
+    }
+    return varCount;
+}
+
+sat::Formula::Formula() : varCount(0) {}
+sat::Formula::Formula(const std::vector<Clause> _clauses) : clauses(_clauses), varCount(calculateVarCount(_clauses)) {}
 
 std::size_t sat::Formula::score(const std::vector<unsigned int> &values) const
 {
@@ -54,4 +69,8 @@ bool sat::Formula::solve(std::vector<unsigned int> values) const
             return false;
     }
     return true;
+}
+
+std::size_t sat::Formula::getVarCount() const{
+    return this->varCount;
 }

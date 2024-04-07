@@ -73,7 +73,7 @@ int main(int argc, char* argv[])
 
     // Load conf
     confmap confs {parseConf(confPath)};
-    std::size_t     dim                 {std::stoul(confs.at("DIM"))},
+    std::size_t     dim                 {},
                     pop                 {std::stoul(confs.at("POP"))},
                     precision           {confs.count("PRECISION") ? std::stoul(confs.at("PRECISION")) : 0},
                     generations         {std::stoul(confs.at("GENERATIONS"))};
@@ -118,6 +118,7 @@ int main(int argc, char* argv[])
         {
         case SAT:{
             formula = new sat::Formula(parseDimacsFormula(std::cin));
+            dim = formula->getVarCount();
             fitnessFunc = std::bind(&sat::Formula::score, formula, std::placeholders::_1);
             break;
         }
@@ -210,8 +211,8 @@ int main(int argc, char* argv[])
                     << "MUTATION RATE: "        << mutationRate         << '\n'
                     << "PRECISION: "            << precision            << '\n'
                     << "WORST_CASE_OFFSET: "    << worstCaseOffset      << '\n'
-                    << "INEQUALITY_PENALTY"     << inequalityPenalty    << '\n'
-                    << "EQUALITY_PENALTY"       << equalityPenalty      << '\n'
+                    << "INEQUALITY_PENALTY: "   << inequalityPenalty    << '\n'
+                    << "EQUALITY_PENALTY: "     << equalityPenalty      << '\n'
                     << "MAXIMIZE: "             << maximize             << '\n'
                     << "SEED: "                 << seed                 << std::endl;
 
