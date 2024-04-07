@@ -65,17 +65,6 @@ ObjectiveEnum stringToObjectiveEnum(std::string const& s){
     exit(1);
 }
 
-enum FitnessEnum {
-    EQ_OBJECTIVE,
-    BIN_TO_REAL,
-};
-FitnessEnum stringToFitnessEnum(std::string const& s){
-    if(s == "bintoreal") return BIN_TO_REAL;
-    if(s == "eqobjective") return EQ_OBJECTIVE;
-    std::cout << "Invalid fitness function: " << s;
-    exit(1);
-}
-
 int main(int argc, char* argv[])
 {
     std::string confPath {argc > 1 ? argv[1] : "conf.conf"};
@@ -90,8 +79,7 @@ int main(int argc, char* argv[])
                     selection       {confs.at("SELECTION")},
                     crossover       {confs.at("CROSSOVER")},
                     mutation        {confs.at("MUTATION")},
-                    objective       {confs.at("OBJECTIVE")},
-                    fitness         {confs.at("FITNESS")};
+                    objective       {confs.at("OBJECTIVE")};
     double          crossoverRate   {std::stod(confs.at("CROSSOVER_RATE"))},
                     mutationRate    {std::stod(confs.at("MUTATION_RATE"))},
                     C               {confs.count("C") ? std::stod(confs.at("C")) : 0.0};
@@ -118,44 +106,25 @@ int main(int argc, char* argv[])
     {
     case BINARY: {
         // Configure fitness function
+        ga::BinaryToNumericConversionFitness<double>* binToNumericConversionFitness = NULL;
+        sat::Formula *formula = NULL;
         ga::FitnessFunction<ga::GeneBin> fitnessFunc;
-        sat::Formula formula;
-        switch (stringToFitnessEnum(fitness))
+        switch (stringToObjectiveEnum(objective))
         {
-        case BIN_TO_REAL: {
-            // Configure objective function
-            std::function<double(std::vector<double>)> objectiveFunc;
-            switch (stringToObjectiveEnum(objective))
-            {
-            case FUNC1:{
-                objectiveFunc = [](std::vector<double>xs) {return func1(xs.at(0));};
-                break;
-            }
-            default:
-                std::cout << "Fitness function " << fitness << " with objective function" << objective << " is not supported" << std::endl;
-                exit(1);
-            }
-
-            dim = ga::calculateBinToRealBitSize(rstart, rend, precision);
-            fitnessFunc = ga::createBinToRealFitness(objectiveFunc, maximize, dim, rstart, rend, precision, C);
-
+        case SAT:{
+            formula = new sat::Formula(parseDimacsFormula(std::cin));
+            fitnessFunc = std::bind(&sat::Formula::score, formula, std::placeholders::_1);
             break;
-        } case EQ_OBJECTIVE: {
-            // Configure objective function
-            std::function<ga::Score(ga::Chromosome<ga::GeneBin>)> objectiveFunc;
-            switch (stringToObjectiveEnum(objective))
-            {
-            case SAT:{
-                formula = parseDimacsFormula(std::cin);
-                objectiveFunc = std::bind(&sat::Formula::score, &formula, std::placeholders::_1);
-                break;
-            }
-            default:{
-                std::cout << "Fitness function " << fitness << " with objective function" << objective << " is not supported" << std::endl;
-                exit(1);
-            }
-            }
-            fitnessFunc = objectiveFunc;
+        }
+        case FUNC1: {
+            dim = ga::BinaryToNumericConversionFitness<ga::GeneReal>::binToNumericBitSize(rstart, rend, precision);
+            auto objectiveFunc = [](std::vector<double>xs) {return func1(xs.at(0));};
+            binToNumericConversionFitness = new ga::BinaryToNumericConversionFitness<double>(ga::Fitness<double> {objectiveFunc, std::vector<ga::Restriction<double>>{}, std::vector<ga::Restriction<double>>{}, 0., 0., C, maximize}, rstart, rend, precision, dim);
+            fitnessFunc = std::bind(&ga::BinaryToNumericConversionFitness<ga::GeneReal>::score, binToNumericConversionFitness, std::placeholders::_1);
+            break;
+        }
+        default: {
+            std::cout << "Objective not supported for binary representations: " << objective << std::endl;
         }
         }
 
@@ -199,7 +168,6 @@ int main(int argc, char* argv[])
                     << "DIM: "              << dim              << '\n'
                     << "GENERATIONS: "      << generations      << '\n'
                     << "OBJECTIVE: "        << objective        << '\n'
-                    << "FITNESS: "          << fitness          << '\n'
                     << "SELECTION: "        << selection        << '\n'
                     << "CROSSOVER: "        << crossover        << '\n'
                     << "CROSSOVER RATE: "   << crossoverRate    << '\n'
@@ -219,6 +187,8 @@ int main(int argc, char* argv[])
             std::cout << gaGenerationScoreInfoToString(geneticAlgorithm) << std::endl;
         }
         std::cout << gaSolutionToString(geneticAlgorithm, dim) << std::endl;
+        delete binToNumericConversionFitness;
+        delete formula;
         break;
     }
     default: {
