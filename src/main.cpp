@@ -88,7 +88,8 @@ int main(int argc, char* argv[])
                     worstCaseOffset     {confs.count("WORST_CASE_OFFSET") ? std::stod(confs.at("WORST_CASE_OFFSET")) : 0.0},
                     inequalityPenalty   {confs.count("INEQUALITY_PENALTY") ? std::stod(confs.at("INEQUALITY_PENALTY")) : 0.0},
                     equalityPenalty     {confs.count("EQUALITY_PENALTY") ? std::stod(confs.at("EQUALITY_PENALTY")) : 0.0};
-    bool            maximize            {confs.at("MAXIMIZE") == "true"};
+    bool            maximize            {confs.at("MAXIMIZE") == "true"},
+                    elitism             {confs.at("ELITISM") == "true"};
     unsigned long   seed                {confs.count("SEED") && confs.at("SEED").length() ? std::stoul(confs.at("SEED")) : std::random_device()()};
     [[maybe_unused]]
     ga::GeneInt     istart              {std::stoi(confs.count("INT_RANGE_START")   ? confs.at("INT_RANGE_START")   : std::to_string(INT32_MIN))},
@@ -197,7 +198,8 @@ int main(int argc, char* argv[])
             crossoverFunc,
             mutationFunc,
             crossoverRate,
-            mutationRate
+            mutationRate,
+            elitism
         };
 
         // Print conf
