@@ -21,7 +21,7 @@ std::vector<std::size_t> ga::rouletteWheelSelection(std::mt19937& rng, std::size
             scoreAcc += scores.at(i);
             if (rn < (double)scoreAcc * maxScoreAccRatio) {
                 selectedIndividuals.push_back(i);
-                lastScoreI = i;
+                lastScoreI = lastScoreI < scores.size() ? i : scores.size();
                 break;
             }
         }
