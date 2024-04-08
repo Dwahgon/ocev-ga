@@ -40,6 +40,7 @@ namespace ga{
         Score score(const Chromosome<GeneBin>& chromosome) const;
 
         static std::size_t binToNumericBitSize(T Xmin, T Xman, std::size_t precision);
+        static T binaryToRangeValue(unsigned int value, std::size_t bitSize, Range<T> range);
     };
 }
 

@@ -226,6 +226,22 @@ int main(int argc, char* argv[])
             std::cout << gaGenerationScoreInfoToString(geneticAlgorithm) << std::endl;
         }
         std::cout << gaSolutionToString(geneticAlgorithm, dim, worstCaseOffset) << std::endl;
+        ga::GeneticAlgorithmSolution<ga::GeneBin> solution {geneticAlgorithm.getSolution()};
+        switch (stringToObjectiveEnum(objective))
+        {
+        case RADIO:{
+            unsigned int st {ga::BinaryToNumericConversionFitness<ga::GeneBin>::binaryToRangeValue(solution.chromosome.at(0) & 0b11111, 5, {0, 24, 0})},
+                lx {ga::BinaryToNumericConversionFitness<ga::GeneBin>::binaryToRangeValue((solution.chromosome.at(0) & (0b11111 << 5)) >> 5, 5, {0, 16, 0})};
+
+            std::cout   << "ST: "   << st                               << '\n'
+                        << "LX: "   << lx                               << '\n'
+                        << "OBJ: "  << radioFactory(st,lx)*1360.0       << '\n'
+                        << "RES?: " << (radioFactoryR5(st, lx) > 0)     << '\n';
+            break;
+        }default:{
+            break;
+        }
+        }
 
         std::ofstream out(outPath);
         out << gaConvergenceTableToString(geneticAlgorithm);

@@ -87,6 +87,15 @@ unsigned int extractDecimalNumberFromBinChromosome(Chromosome<GeneBin> chromosom
 }
 
 template<class T>
+T ga::BinaryToNumericConversionFitness<T>::binaryToRangeValue(unsigned int value, std::size_t bitSize, Range<T> range){
+    double raw {(double)range.Xmin + ((double)(range.Xmax - range.Xmin) / (double)((1 << bitSize) - 1)) * (double)value};
+    return (T)(range.precision == 0 ? round(raw) : raw);
+}
+template GeneBin ga::BinaryToNumericConversionFitness<GeneBin>::binaryToRangeValue(unsigned int value, std::size_t bitSize, Range<GeneBin> range);
+template GeneReal ga::BinaryToNumericConversionFitness<GeneReal>::binaryToRangeValue(unsigned int value, std::size_t bitSize, Range<GeneReal> range);
+template GeneInt ga::BinaryToNumericConversionFitness<GeneInt>::binaryToRangeValue(unsigned int value, std::size_t bitSize, Range<GeneInt> range);
+
+template<class T>
 Score ga::BinaryToNumericConversionFitness<T>::score(const Chromosome<GeneBin>& chromosome) const {
     Chromosome<T> convertedChromosome;
 
@@ -96,8 +105,7 @@ Score ga::BinaryToNumericConversionFitness<T>::score(const Chromosome<GeneBin>& 
         r = this->chromosomeRanges.at(i);
         bitSize = this->bitSizes.at(i);
         unsigned int dec {extractDecimalNumberFromBinChromosome(chromosome, bitSizeAcc, bitSize)};
-        double rawGene {(double)r.Xmin + ((double)(r.Xmax - r.Xmin) / (double)((1 << bitSize) - 1)) * (double)dec};
-        convertedChromosome.push_back((T)(r.precision == 0 ? round(rawGene) : rawGene));
+        convertedChromosome.push_back(this->binaryToRangeValue(dec, bitSize, r));
         bitSizeAcc += bitSize;
     }
 
