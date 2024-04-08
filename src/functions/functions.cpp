@@ -13,9 +13,9 @@ double func1(double x){
 //      (4) lx * 2 <= 32 => lx <= 16                -> a luxurious radio requires 2 worker/day. We can only allocate 16 workers in the assembly line
 //      (5) st * 1 + lx * 2 <= 40                   -> the factory only has 40 workers
 double radioFactory(unsigned int st, unsigned int lx){
-    return 30 * st + 40 * lx;
+    return (30.0 * (double)st + 40.0 * (double)lx) / 1360.0;
 }
 
 double radioFactoryR5(unsigned int st, unsigned int lx){
-    return st + 2 * lx > 40 ? 40.0 - (double)(st + 2 * lx) : 0.0;
+    return st + 2 * lx > 40 ? ((double)(st + 2 * lx) - 40.0)/16.0 : 0.0;
 }
