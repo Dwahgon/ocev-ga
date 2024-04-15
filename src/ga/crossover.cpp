@@ -13,7 +13,7 @@ std::vector<Chromosome<GeneBin>> ga::binOnePointCrossover(std::mt19937& rng, con
 
     Chromosome<GeneBin> child1, child2;
 
-    for (std::size_t i = 0; i <= father.size(); i++){
+    for (std::size_t i = 0; i < father.size(); i++){
         if (i < index){
             child1.push_back(father.at(i));
             child2.push_back(mother.at(i));
