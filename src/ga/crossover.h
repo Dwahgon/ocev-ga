@@ -7,6 +7,7 @@
 
 namespace ga{
     std::vector<Chromosome<GeneBin>> binOnePointCrossover(std::mt19937& rng, const Chromosome<GeneBin>& father, const Chromosome<GeneBin>& mother, std::size_t binSize);
+    std::vector<Chromosome<GeneBin>> binUniformCrossover(std::mt19937& rng, const Chromosome<GeneBin>& father, const Chromosome<GeneBin>& mother);
 };
 
 #endif

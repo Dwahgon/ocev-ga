@@ -38,10 +38,12 @@ SelectionEnum stringToSelectionEnum(std::string const& s){
 }
 
 enum CrossoverEnum {
-    ONE_POINT
+    ONE_POINT,
+    UNIFORM,
 };
 CrossoverEnum stringToCrossoverEnum(std::string const& s){
     if(s == "onepoint") return ONE_POINT;
+    if(s == "uniform") return UNIFORM;
     std::cout << "Invalid crossover function: " << s;
     exit(1);
 }
@@ -173,6 +175,8 @@ int main(int argc, char* argv[])
             case ONE_POINT:
                 crossoverFunc = std::bind(ga::binOnePointCrossover, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, dim);
                 break;
+            case UNIFORM:
+                crossoverFunc = ga::binUniformCrossover;
         }
 
         // Configure muatation function
