@@ -63,7 +63,7 @@ void GeneticAlgorithm<T>::calculatePopulationScore(){
     this->populationScore.clear();
 
     std::vector<std::future<Scores>> workerThreads;
-    std::size_t workloadSize {this->populationSize / (std::size_t)this->threads};
+    std::size_t workloadSize {(std::size_t)std::ceil((double)this->populationSize / (double)this->threads)};
 
     for(short ti {0}; ti < this->threads; ti++){
         workerThreads.push_back(std::async([ti, workloadSize, this](){
