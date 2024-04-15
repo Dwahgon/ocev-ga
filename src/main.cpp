@@ -29,10 +29,12 @@ RepresentationEnum stringToRepresentationEnum(std::string const& s){
 }
 
 enum SelectionEnum {
-    ROULETTE
+    ROULETTE,
+    TOURNAMENT,
 };
 SelectionEnum stringToSelectionEnum(std::string const& s){
     if(s == "roulette") return ROULETTE;
+    if(s == "tournament") return TOURNAMENT;
     std::cout << "Invalid selection function: " << s;
     exit(1);
 }
@@ -79,7 +81,8 @@ int main(int argc, char* argv[])
     std::size_t     dim                 {},
                     pop                 {std::stoul(confs.at("POP"))},
                     precision           {confs.count("PRECISION") ? std::stoul(confs.at("PRECISION")) : 0},
-                    generations         {std::stoul(confs.at("GENERATIONS"))};
+                    generations         {std::stoul(confs.at("GENERATIONS"))},
+                    tournamentK         {confs.count("TOURNAMENT_K") ? std::stoul(confs.at("TOURNAMENT_K")) : 2};
     std::string     representation      {confs.at("REPRESENTATION")},
                     selection           {confs.at("SELECTION")},
                     crossover           {confs.at("CROSSOVER")},
@@ -89,7 +92,8 @@ int main(int argc, char* argv[])
                     mutationRate        {std::stod(confs.at("MUTATION_RATE"))},
                     worstCaseOffset     {confs.count("WORST_CASE_OFFSET") ? std::stod(confs.at("WORST_CASE_OFFSET")) : 0.0},
                     inequalityPenalty   {confs.count("INEQUALITY_PENALTY") ? std::stod(confs.at("INEQUALITY_PENALTY")) : 0.0},
-                    equalityPenalty     {confs.count("EQUALITY_PENALTY") ? std::stod(confs.at("EQUALITY_PENALTY")) : 0.0};
+                    equalityPenalty     {confs.count("EQUALITY_PENALTY") ? std::stod(confs.at("EQUALITY_PENALTY")) : 0.0},
+                    tournamentKp        {confs.count("TOURNAMENT_KP") ? std::stod(confs.at("TOURNAMENT_KP")) : 1.0};
     bool            maximize            {confs.at("MAXIMIZE") == "true"},
                     elitism             {confs.at("ELITISM") == "true"};
     unsigned long   seed                {confs.count("SEED") && confs.at("SEED").length() ? std::stoul(confs.at("SEED")) : std::random_device()()};
@@ -106,6 +110,9 @@ int main(int argc, char* argv[])
     {
         case ROULETTE:
             selectionFunc = ga::rouletteWheelSelection;
+            break;
+        case TOURNAMENT:
+            selectionFunc = std::bind(ga::tournamentSelection, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, tournamentK, tournamentKp);
             break;
     }
 
@@ -220,6 +227,8 @@ int main(int argc, char* argv[])
                     << "WORST_CASE_OFFSET: "    << worstCaseOffset      << '\n'
                     << "INEQUALITY_PENALTY: "   << inequalityPenalty    << '\n'
                     << "EQUALITY_PENALTY: "     << equalityPenalty      << '\n'
+                    << "TOURNAMENT_KP: "        << tournamentKp         << '\n'
+                    << "TOURNAMENT_K: "         << tournamentK          << '\n'
                     << "MAXIMIZE: "             << maximize             << '\n'
                     << "SEED: "                 << seed                 << std::endl;
 
