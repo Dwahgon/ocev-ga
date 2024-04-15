@@ -22,6 +22,7 @@ namespace ga {
         const double crossoverRate;
         const double mutationRate;
         const std::size_t elitism;
+        const short threads;
 
         Population<T> population;
         Scores populationScore;
@@ -34,7 +35,7 @@ namespace ga {
         void setPopulation(const Population<T> population);
 
         public:
-            GeneticAlgorithm(const unsigned long seed, std::size_t populationSize, const PopulationGenerator<T> populationGenerator, const FitnessFunction<T> fitnessFunction, const SelectionFunction selectionFunction, const CrossoverFunction<T> crossoverFunction, const MutationFunction<T> mutationFunction, double crossoverRate, double mutationRate, bool elitism);
+            GeneticAlgorithm(const unsigned long seed, std::size_t populationSize, const PopulationGenerator<T> populationGenerator, const FitnessFunction<T> fitnessFunction, const SelectionFunction selectionFunction, const CrossoverFunction<T> crossoverFunction, const MutationFunction<T> mutationFunction, double crossoverRate, double mutationRate, bool elitism, short threads);
 
             void initPopulation();
             Population<T> getPopulation() const;

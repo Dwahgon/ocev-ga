@@ -96,6 +96,7 @@ int main(int argc, char* argv[])
                     tournamentKp        {confs.count("TOURNAMENT_KP") ? std::stod(confs.at("TOURNAMENT_KP")) : 1.0};
     bool            maximize            {confs.at("MAXIMIZE") == "true"},
                     elitism             {confs.at("ELITISM") == "true"};
+    int             threads             {confs.count("THREADS") ? std::stoi(confs.at("THREADS")) : 1};
     unsigned long   seed                {confs.count("SEED") && confs.at("SEED").length() ? std::stoul(confs.at("SEED")) : std::random_device()()};
     [[maybe_unused]]
     ga::GeneInt     istart              {std::stoi(confs.count("INT_RANGE_START")   ? confs.at("INT_RANGE_START")   : std::to_string(INT32_MIN))},
@@ -210,7 +211,8 @@ int main(int argc, char* argv[])
             mutationFunc,
             crossoverRate,
             mutationRate,
-            elitism
+            elitism,
+            (short)threads
         };
 
         // Print conf
@@ -230,6 +232,7 @@ int main(int argc, char* argv[])
                     << "TOURNAMENT_KP: "        << tournamentKp         << '\n'
                     << "TOURNAMENT_K: "         << tournamentK          << '\n'
                     << "MAXIMIZE: "             << maximize             << '\n'
+                    << "THREADS: "              << threads              << '\n'
                     << "SEED: "                 << seed                 << std::endl;
 
         // Start population
