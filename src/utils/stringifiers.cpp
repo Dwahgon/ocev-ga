@@ -44,7 +44,7 @@ std::string chromosomeToString(ga::Chromosome<T> chromosome, unsigned int binSiz
 }
 template std::string chromosomeToString(ga::Chromosome<ga::GeneBin>, unsigned int);
 template std::string chromosomeToString(ga::Chromosome<ga::GeneInt>, unsigned int);
-// template std::string chromosomeToString(ga::Chromosome<ga::GeneIntPerm>, unsigned int);
+template std::string chromosomeToString(ga::Chromosome<ga::GeneIntPerm>, unsigned int);
 template std::string chromosomeToString(ga::Chromosome<ga::GeneReal>, unsigned int);
 
 template <typename T>
@@ -57,7 +57,7 @@ std::string populationToString(ga::Population<T> population, unsigned int binSiz
 }
 template std::string populationToString(ga::Population<ga::GeneBin>, unsigned int);
 template std::string populationToString(ga::Population<ga::GeneInt>, unsigned int);
-// template std::string populationToString(ga::Population<ga::GeneIntPerm>, unsigned int);
+template std::string populationToString(ga::Population<ga::GeneIntPerm>, unsigned int);
 template std::string populationToString(ga::Population<ga::GeneReal>, unsigned int);
 
 std::string scoresToString(ga::Scores scores){
@@ -83,7 +83,7 @@ std::string gaBestIndividualToString(ga::GeneticAlgorithm<T> &ga, std::size_t di
 }
 template std::string gaBestIndividualToString(ga::GeneticAlgorithm<ga::GeneBin> &ga, std::size_t dim);
 template std::string gaBestIndividualToString(ga::GeneticAlgorithm<ga::GeneInt> &ga, std::size_t dim);
-// template std::string populationToString(ga::Population<ga::GeneIntPerm>, unsigned int);
+template std::string gaBestIndividualToString(ga::GeneticAlgorithm<ga::GeneIntPerm> &ga, std::size_t dim);
 template std::string gaBestIndividualToString(ga::GeneticAlgorithm<ga::GeneReal> &ga, std::size_t dim);
 
 template <class T>
@@ -101,7 +101,7 @@ std::string gaGenerationScoreInfoToString(ga::GeneticAlgorithm<T> &ga){
 }
 template std::string gaGenerationScoreInfoToString(ga::GeneticAlgorithm<ga::GeneBin> &ga);
 template std::string gaGenerationScoreInfoToString(ga::GeneticAlgorithm<ga::GeneInt> &ga);
-// template std::string gaGenerationScoreInfoToString(ga::Population<ga::GeneIntPerm>);
+template std::string gaGenerationScoreInfoToString(ga::GeneticAlgorithm<ga::GeneIntPerm> &ga);
 template std::string gaGenerationScoreInfoToString(ga::GeneticAlgorithm<ga::GeneReal> &ga);
 
 template <typename T>
@@ -117,7 +117,7 @@ std::string gaSolutionToString(ga::GeneticAlgorithm<T> &ga, std::size_t dim, dou
 }
 template std::string gaSolutionToString(ga::GeneticAlgorithm<ga::GeneBin> &ga, std::size_t dim, double C);
 template std::string gaSolutionToString(ga::GeneticAlgorithm<ga::GeneInt> &ga, std::size_t dim, double C);
-// template std::string gaSolutionToString(ga::Population<ga::GeneIntPerm>, unsigned int, double C);
+template std::string gaSolutionToString(ga::GeneticAlgorithm<ga::GeneIntPerm> &ga, std::size_t dim, double C);
 template std::string gaSolutionToString(ga::GeneticAlgorithm<ga::GeneReal> &ga, std::size_t dim, double C);
 
 template <class T>
@@ -137,5 +137,5 @@ std::string gaConvergenceTableToString(ga::GeneticAlgorithm<T> &ga){
 }
 template std::string gaConvergenceTableToString(ga::GeneticAlgorithm<ga::GeneBin> &ga);
 template std::string gaConvergenceTableToString(ga::GeneticAlgorithm<ga::GeneInt> &ga);
-// template std::string gaGenerationScoreInfoToString(ga::Population<ga::GeneIntPerm>);
+template std::string gaConvergenceTableToString(ga::GeneticAlgorithm<ga::GeneIntPerm> &ga);
 template std::string gaConvergenceTableToString(ga::GeneticAlgorithm<ga::GeneReal> &ga);

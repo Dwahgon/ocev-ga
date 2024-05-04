@@ -11,7 +11,7 @@ namespace ga
     using Chromosome = std::vector<T>;
     using GeneBin = unsigned int;
     using GeneInt = int;
-    using GeneIntPerm = unsigned int;
+    using GeneIntPerm = std::size_t;
     using GeneReal = double;
 
     template <typename T>

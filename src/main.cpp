@@ -42,19 +42,25 @@ SelectionEnum stringToSelectionEnum(std::string const& s){
 enum CrossoverEnum {
     ONE_POINT,
     UNIFORM,
+    PMX,
+    CX
 };
 CrossoverEnum stringToCrossoverEnum(std::string const& s){
     if(s == "onepoint") return ONE_POINT;
     if(s == "uniform") return UNIFORM;
+    if(s == "pmx") return PMX;
+    if(s == "cx") return CX;
     std::cout << "Invalid crossover function: " << s;
     exit(1);
 }
 
 enum MutationEnum {
-    BITWISE
+    BITWISE,
+    SWAP
 };
 MutationEnum stringToMutationEnum(std::string const& s){
     if(s == "bitwise") return BITWISE;
+    if(s == "swap") return SWAP;
     std::cout << "Invalid mutation function: " << s;
     exit(1);
 }
@@ -63,11 +69,13 @@ enum ObjectiveEnum {
     FUNC1,
     SAT,
     RADIO,
+    NQUEENS
 };
 ObjectiveEnum stringToObjectiveEnum(std::string const& s){
     if(s == "func1") return FUNC1;
     if(s == "sat") return SAT;
     if(s == "radio") return RADIO;
+    if(s == "nqueens") return NQUEENS;
     std::cout << "Invalid objective function: " << s;
     exit(1);
 }
@@ -78,7 +86,7 @@ int main(int argc, char* argv[])
 
     // Load conf
     confmap confs {parseConf(confPath)};
-    std::size_t     dim                 {},
+    std::size_t     dim                 {confs.count("DIM") ? std::stoul(confs.at("DIM")) : 0},
                     pop                 {std::stoul(confs.at("POP"))},
                     precision           {confs.count("PRECISION") ? std::stoul(confs.at("PRECISION")) : 0},
                     generations         {std::stoul(confs.at("GENERATIONS"))},
@@ -94,7 +102,7 @@ int main(int argc, char* argv[])
                     inequalityPenalty   {confs.count("INEQUALITY_PENALTY") ? std::stod(confs.at("INEQUALITY_PENALTY")) : 0.0},
                     equalityPenalty     {confs.count("EQUALITY_PENALTY") ? std::stod(confs.at("EQUALITY_PENALTY")) : 0.0},
                     tournamentKp        {confs.count("TOURNAMENT_KP") ? std::stod(confs.at("TOURNAMENT_KP")) : 1.0};
-    bool            maximize            {confs.at("MAXIMIZE") == "true"},
+    bool            maximize            {confs.count("MAXIMIZE") ? confs.at("MAXIMIZE") == "true" : false},
                     elitism             {confs.at("ELITISM") == "true"};
     int             threads             {confs.count("THREADS") ? std::stoi(confs.at("THREADS")) : 1};
     unsigned long   seed                {confs.count("SEED") && confs.at("SEED").length() ? std::stoul(confs.at("SEED")) : std::random_device()()};
@@ -185,6 +193,9 @@ int main(int argc, char* argv[])
                 break;
             case UNIFORM:
                 crossoverFunc = ga::binUniformCrossover;
+                break;
+            default:
+                std::cout << "Crossover function not supported for binary representations: " << crossover << std::endl;
         }
 
         // Configure muatation function
@@ -194,6 +205,8 @@ int main(int argc, char* argv[])
             case BITWISE:
                 mutationFunc = std::bind(ga::bitwiseMutation, std::placeholders::_1, std::placeholders::_2, dim, std::placeholders::_3);
                 break;
+            default:
+                std::cout << "Mutation function not supported for binary representations: " << mutation << std::endl;
         }
 
         // Configure population generator
@@ -268,6 +281,99 @@ int main(int argc, char* argv[])
         delete binToDoubleConversionFitness;
         delete binToUIConversionFitness;
         delete formula;
+        break;
+    }
+    case INTEGER_PERM: {
+        ga::FitnessFunction<ga::GeneIntPerm> fitnessFunc;
+        switch (stringToObjectiveEnum(objective))
+        {
+        case NQUEENS:
+            fitnessFunc = [](const ga::Chromosome<ga::GeneIntPerm> &chromosome) {return chromosome.size() - nQueens(chromosome) - 1;};
+            break;
+        default: {
+            std::cout << "Objective not supported for integer permutation representations: " << objective << std::endl;
+        }
+        }
+
+        // Configure crossover function
+        ga::CrossoverFunction<ga::GeneIntPerm> crossoverFunc;
+        switch (stringToCrossoverEnum(crossover))
+        {
+            case PMX:
+                crossoverFunc = ga::pmxCrossover;
+                break;
+            case CX:
+                crossoverFunc = ga::cxCrossover;
+                break;
+            default:
+                std::cout << "Crossover function not supported for integer permutation representations: " << crossover << std::endl;
+        }
+
+        // Configure muatation function
+        ga::MutationFunction<ga::GeneIntPerm> mutationFunc;
+        switch (stringToMutationEnum(mutation))
+        {
+            case SWAP:
+                mutationFunc = ga::swapMutation;
+                break;
+            default:
+                std::cout << "Mutation function not supported for integer permutation representations: " << mutation << std::endl;
+        }
+
+        // Configure population generator
+        ga::ChromosomeGenerator cg {dim, seed};
+        ga::PopulationGenerator<ga::GeneIntPerm> popgen {std::bind(ga::generateGeneIntPermPopulation, std::ref(cg), std::placeholders::_1)};
+
+        // Configure GA
+        ga::GeneticAlgorithm<ga::GeneIntPerm> geneticAlgorithm {
+            seed,
+            pop,
+            popgen,
+            fitnessFunc,
+            selectionFunc,
+            crossoverFunc,
+            mutationFunc,
+            crossoverRate,
+            mutationRate,
+            elitism,
+            (short)threads
+        };
+
+        // Print conf
+        std::cout   << "POP: "                  << pop                  << '\n'
+                    << "DIM: "                  << dim                  << '\n'
+                    << "GENERATIONS: "          << generations          << '\n'
+                    << "OBJECTIVE: "            << objective            << '\n'
+                    << "SELECTION: "            << selection            << '\n'
+                    << "CROSSOVER: "            << crossover            << '\n'
+                    << "CROSSOVER RATE: "       << crossoverRate        << '\n'
+                    << "MUTATION: "             << mutation             << '\n'
+                    << "MUTATION RATE: "        << mutationRate         << '\n'
+                    << "PRECISION: "            << precision            << '\n'
+                    << "WORST_CASE_OFFSET: "    << worstCaseOffset      << '\n'
+                    << "INEQUALITY_PENALTY: "   << inequalityPenalty    << '\n'
+                    << "EQUALITY_PENALTY: "     << equalityPenalty      << '\n'
+                    << "TOURNAMENT_KP: "        << tournamentKp         << '\n'
+                    << "TOURNAMENT_K: "         << tournamentK          << '\n'
+                    << "MAXIMIZE: "             << maximize             << '\n'
+                    << "THREADS: "              << threads              << '\n'
+                    << "SEED: "                 << seed                 << std::endl;
+
+        // Start population
+        geneticAlgorithm.initPopulation();
+
+        // Run evolutionary loop
+        for(std::size_t i = 0; i < generations; i++){
+            geneticAlgorithm.step();
+            std::cout << gaGenerationScoreInfoToString(geneticAlgorithm) << std::endl;
+        }
+        std::cout << gaSolutionToString(geneticAlgorithm, 0, worstCaseOffset) << std::endl;
+        ga::GeneticAlgorithmSolution<ga::GeneIntPerm> solution {geneticAlgorithm.getSolution()};
+
+        std::ofstream out(outPath);
+        out << gaConvergenceTableToString(geneticAlgorithm);
+        out.close();
+
         break;
     }
     default: {

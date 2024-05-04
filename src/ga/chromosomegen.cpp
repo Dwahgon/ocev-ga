@@ -51,9 +51,9 @@ Chromosome<GeneIntPerm> ChromosomeGenerator::generateChromosomeIntPerm()
     return this->generateChromosomeIntPerm(this->chromossomeSize);
 }
 
-std::vector<uint32_t> ChromosomeGenerator::generateChromosomeIntPerm(const std::size_t size)
+std::vector<GeneIntPerm> ChromosomeGenerator::generateChromosomeIntPerm(const std::size_t size)
 {
-    std::vector<uint32_t> nums(size);
+    std::vector<GeneIntPerm> nums(size);
     for (std::size_t i = 0; i < size; i++)
         nums[i] = i;
     std::shuffle(nums.begin(), nums.end(), this->rng);

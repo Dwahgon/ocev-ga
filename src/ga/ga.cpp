@@ -38,6 +38,7 @@ GeneticAlgorithm<T>::GeneticAlgorithm(
     rng(std::mt19937(seed))
     {}
 template GeneticAlgorithm<GeneInt>::GeneticAlgorithm(const unsigned long, const std::size_t, const PopulationGenerator<GeneInt>, const FitnessFunction<GeneInt>, const SelectionFunction, const CrossoverFunction<GeneInt>, const MutationFunction<GeneInt>, double, double, bool, short);
+template GeneticAlgorithm<GeneIntPerm>::GeneticAlgorithm(const unsigned long, const std::size_t, const PopulationGenerator<GeneIntPerm>, const FitnessFunction<GeneIntPerm>, const SelectionFunction, const CrossoverFunction<GeneIntPerm>, const MutationFunction<GeneIntPerm>, double, double, bool, short);
 template GeneticAlgorithm<GeneBin>::GeneticAlgorithm(const unsigned long, const std::size_t, const PopulationGenerator<GeneBin>, const FitnessFunction<GeneBin>, const SelectionFunction, const CrossoverFunction<GeneBin>, const MutationFunction<GeneBin>, double, double, bool, short);
 template GeneticAlgorithm<GeneReal>::GeneticAlgorithm(const unsigned long, const std::size_t, const PopulationGenerator<GeneReal>, const FitnessFunction<GeneReal>, const SelectionFunction, const CrossoverFunction<GeneReal>, const MutationFunction<GeneReal>, double, double, bool, short);
 
@@ -48,6 +49,7 @@ void GeneticAlgorithm<T>::initPopulation(){
 }
 template void GeneticAlgorithm<GeneBin>::initPopulation();
 template void GeneticAlgorithm<GeneInt>::initPopulation();
+template void GeneticAlgorithm<GeneIntPerm>::initPopulation();
 template void GeneticAlgorithm<GeneReal>::initPopulation();
 
 template<class T>
@@ -56,29 +58,36 @@ Population<T> GeneticAlgorithm<T>::getPopulation() const {
 };
 template Population<GeneBin> GeneticAlgorithm<GeneBin>::getPopulation() const;
 template Population<GeneInt> GeneticAlgorithm<GeneInt>::getPopulation() const;
+template Population<GeneIntPerm> GeneticAlgorithm<GeneIntPerm>::getPopulation() const;
 template Population<GeneReal> GeneticAlgorithm<GeneReal>::getPopulation() const;
 
 template<class T>
 void GeneticAlgorithm<T>::calculatePopulationScore(){
     this->populationScore.clear();
 
-    std::vector<std::future<Scores>> workerThreads;
-    std::size_t workloadSize {(std::size_t)std::ceil((double)this->populationSize / (double)this->threads)};
+    auto workloadFunction {[this](std::size_t ti, std::size_t workloadSize){
+        Scores scores;
+        std::size_t lastI = MIN(population.size(), (ti + 1) * workloadSize) - 1;
+        for(std::size_t i {ti * workloadSize}; i <= lastI; i++){
+            scores.push_back(fitnessFunction(population.at(i)));
+        }
+        return scores;
+    }};
 
-    for(short ti {0}; ti < this->threads; ti++){
-        workerThreads.push_back(std::async([ti, workloadSize, this](){
-            Scores scores;
-            std::size_t lastI = MIN(population.size(), (ti + 1) * workloadSize) - 1;
-            for(std::size_t i {ti * workloadSize}; i <= lastI; i++){
-                scores.push_back(fitnessFunction(population.at(i)));
-            }
-            return scores;
-        }));
-    }
+    if (this->threads > 0){
+        std::vector<std::future<Scores>> workerThreads;
+        std::size_t workloadSize {(std::size_t)std::ceil((double)this->populationSize / (double)this->threads)};
 
-    for (std::future<Scores>& workerThread : workerThreads){
-        Scores workerScores {workerThread.get()};
-        this->populationScore.insert(this->populationScore.end(), workerScores.begin(), workerScores.end());
+        for(short ti {0}; ti < this->threads; ti++){
+            workerThreads.push_back(std::async([ti, workloadSize, workloadFunction](){ return workloadFunction(ti, workloadSize);}));
+        }
+
+        for (std::future<Scores>& workerThread : workerThreads){
+            Scores workerScores {workerThread.get()};
+            this->populationScore.insert(this->populationScore.end(), workerScores.begin(), workerScores.end());
+        }
+    }else{
+        this->populationScore = workloadFunction(0, population.size());
     }
 
     std::size_t bestIndividualIndex = this->getCurrentBestIndividualIndex();
@@ -89,6 +98,7 @@ void GeneticAlgorithm<T>::calculatePopulationScore(){
 }
 template void GeneticAlgorithm<GeneBin>::calculatePopulationScore();
 template void GeneticAlgorithm<GeneInt>::calculatePopulationScore();
+template void GeneticAlgorithm<GeneIntPerm>::calculatePopulationScore();
 template void GeneticAlgorithm<GeneReal>::calculatePopulationScore();
 
 template<class T>
@@ -97,6 +107,7 @@ Scores GeneticAlgorithm<T>::getPopulationScore() const {
 }
 template Scores GeneticAlgorithm<GeneBin>::getPopulationScore() const;
 template Scores GeneticAlgorithm<GeneInt>::getPopulationScore() const;
+template Scores GeneticAlgorithm<GeneIntPerm>::getPopulationScore() const;
 template Scores GeneticAlgorithm<GeneReal>::getPopulationScore() const;
 
 template<class T>
@@ -105,6 +116,7 @@ std::size_t GeneticAlgorithm<T>::getCurrentBestIndividualIndex() const {
 }
 template std::size_t GeneticAlgorithm<GeneBin>::getCurrentBestIndividualIndex() const;
 template std::size_t GeneticAlgorithm<GeneInt>::getCurrentBestIndividualIndex() const;
+template std::size_t GeneticAlgorithm<GeneIntPerm>::getCurrentBestIndividualIndex() const;
 template std::size_t GeneticAlgorithm<GeneReal>::getCurrentBestIndividualIndex() const;
 
 template<class T>
@@ -113,6 +125,7 @@ std::size_t GeneticAlgorithm<T>::getCurrentWorstIndividualIndex() const {
 }
 template std::size_t GeneticAlgorithm<GeneBin>::getCurrentWorstIndividualIndex() const;
 template std::size_t GeneticAlgorithm<GeneInt>::getCurrentWorstIndividualIndex() const;
+template std::size_t GeneticAlgorithm<GeneIntPerm>::getCurrentWorstIndividualIndex() const;
 template std::size_t GeneticAlgorithm<GeneReal>::getCurrentWorstIndividualIndex() const;
 
 template<class T>
@@ -127,6 +140,7 @@ void GeneticAlgorithm<T>::reset() {
 }
 template void GeneticAlgorithm<GeneBin>::reset();
 template void GeneticAlgorithm<GeneInt>::reset();
+template void GeneticAlgorithm<GeneIntPerm>::reset();
 template void GeneticAlgorithm<GeneReal>::reset();
 
 template<class T>
@@ -137,6 +151,7 @@ void GeneticAlgorithm<T>::setPopulation(const Population<T> population){
 }
 template void GeneticAlgorithm<GeneBin>::setPopulation(const Population<GeneBin> population);
 template void GeneticAlgorithm<GeneInt>::setPopulation(const Population<GeneInt> population);
+template void GeneticAlgorithm<GeneIntPerm>::setPopulation(const Population<GeneIntPerm> population);
 template void GeneticAlgorithm<GeneReal>::setPopulation(const Population<GeneReal> population);
 
 template<class T>
@@ -183,6 +198,7 @@ void GeneticAlgorithm<T>::step() {
 }
 template void GeneticAlgorithm<GeneBin>::step();
 template void GeneticAlgorithm<GeneInt>::step();
+template void GeneticAlgorithm<GeneIntPerm>::step();
 template void GeneticAlgorithm<GeneReal>::step();
 
 template<class T>
@@ -203,6 +219,7 @@ GenerationScoreInfo ga::GeneticAlgorithm<T>::calculateGenerationScoreInfo() cons
 }
 template GenerationScoreInfo ga::GeneticAlgorithm<GeneBin>::calculateGenerationScoreInfo() const;
 template GenerationScoreInfo ga::GeneticAlgorithm<GeneInt>::calculateGenerationScoreInfo() const;
+template GenerationScoreInfo ga::GeneticAlgorithm<GeneIntPerm>::calculateGenerationScoreInfo() const;
 template GenerationScoreInfo ga::GeneticAlgorithm<GeneReal>::calculateGenerationScoreInfo() const;
 
 template<class T>
@@ -211,6 +228,7 @@ int ga::GeneticAlgorithm<T>::getCurrentGeneration() const{
 }
 template int ga::GeneticAlgorithm<GeneBin>::getCurrentGeneration() const;
 template int ga::GeneticAlgorithm<GeneInt>::getCurrentGeneration() const;
+template int ga::GeneticAlgorithm<GeneIntPerm>::getCurrentGeneration() const;
 template int ga::GeneticAlgorithm<GeneReal>::getCurrentGeneration() const;
 
 template<class T>
@@ -219,6 +237,7 @@ GeneticAlgorithmSolution<T> ga::GeneticAlgorithm<T>::getSolution() const{
 }
 template GeneticAlgorithmSolution<GeneBin> ga::GeneticAlgorithm<GeneBin>::getSolution() const;
 template GeneticAlgorithmSolution<GeneInt> ga::GeneticAlgorithm<GeneInt>::getSolution() const;
+template GeneticAlgorithmSolution<GeneIntPerm> ga::GeneticAlgorithm<GeneIntPerm>::getSolution() const;
 template GeneticAlgorithmSolution<GeneReal> ga::GeneticAlgorithm<GeneReal>::getSolution() const;
 
 template<class T>
@@ -227,4 +246,5 @@ std::vector<GenerationScoreInfo> GeneticAlgorithm<T>::getConvergenceTable() cons
 }
 template std::vector<GenerationScoreInfo> ga::GeneticAlgorithm<GeneBin>::getConvergenceTable() const;
 template std::vector<GenerationScoreInfo> ga::GeneticAlgorithm<GeneInt>::getConvergenceTable() const;
+template std::vector<GenerationScoreInfo> ga::GeneticAlgorithm<GeneIntPerm>::getConvergenceTable() const;
 template std::vector<GenerationScoreInfo> ga::GeneticAlgorithm<GeneReal>::getConvergenceTable() const;
