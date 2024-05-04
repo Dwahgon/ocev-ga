@@ -1,6 +1,7 @@
 #include "selection.h"
 
 #include <algorithm>
+#include <iostream>
 
 std::vector<std::size_t> ga::rouletteWheelSelection(std::mt19937& rng, std::size_t amount, const ga::Scores& scores){
     // Calculate total population score
@@ -36,7 +37,7 @@ std::vector<std::size_t> ga::tournamentSelection(std::mt19937& rng, std::size_t 
     std::uniform_int_distribution<std::size_t> selectChromosomeDist(0, scores.size()-1);
     std::uniform_real_distribution<double> kpRandomNumber(0.0, 1.0);
 
-    std::size_t rc;
+    std::size_t rc, lastChromosome = scores.size();
     std::vector<std::size_t> selectedIndividuals;
     std::vector<std::size_t> tournament;
     while (amount--){
@@ -45,13 +46,19 @@ std::vector<std::size_t> ga::tournamentSelection(std::mt19937& rng, std::size_t 
             do {
                 rc = selectChromosomeDist(rng);
             }
-            while(std::find(tournament.begin(), tournament.end(), rc) != tournament.end());
+            while(rc == lastChromosome || std::find(tournament.begin(), tournament.end(), rc) != tournament.end());
             tournament.push_back(rc);
         }
         std::sort(tournament.begin(), tournament.end(), [scores](std::size_t i, std::size_t j){return scores.at(i) < scores.at(j);});
-        selectedIndividuals.push_back(kpRandomNumber(rng) <= kp ? tournament.back() : tournament.front());
+        std::size_t chosenChromosome {kpRandomNumber(rng) <= kp ? tournament.back() : tournament.front()};
+        lastChromosome = lastChromosome < scores.size() ? scores.size() : chosenChromosome;
+        selectedIndividuals.push_back(chosenChromosome);
         tournament.clear();
     }
+
+    for (auto &i : selectedIndividuals)
+        std::cout << i << " ";
+    std::cout << std::endl;
 
     return selectedIndividuals;
 }
