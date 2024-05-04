@@ -258,6 +258,7 @@ int main(int argc, char* argv[])
 
         // Run evolutionary loop
         for(std::size_t i = 0; i < generations; i++){
+            geneticAlgorithm.linearScalingC = 1.2 + 0.8 * ((double)i / (double) generations);
             geneticAlgorithm.step();
             std::cout << gaGenerationScoreInfoToString(geneticAlgorithm) << std::endl;
         }
@@ -369,6 +370,7 @@ int main(int argc, char* argv[])
 
         // Run evolutionary loop
         for(std::size_t i = 0; i < generations; i++){
+            geneticAlgorithm.linearScalingC = 1.2 + 0.8 * ((double)i / (double)generations);
             geneticAlgorithm.step();
             std::cout << gaGenerationScoreInfoToString(geneticAlgorithm) << std::endl;
         }

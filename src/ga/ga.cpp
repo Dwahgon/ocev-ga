@@ -162,7 +162,7 @@ void GeneticAlgorithm<T>::step() {
     std::uniform_real_distribution<double> dist(0.0, 1.0);
 
     // Select individuals
-    std::vector<std::size_t> selectedIndividuals = this->selectionFunction(this->rng, this->populationSize, this->populationScore);
+    std::vector<std::size_t> selectedIndividuals = this->selectionFunction(this->rng, this->populationSize, this->calculateScoresScaled());
 
     // Create new population
     Population<T> newPopulation;
@@ -207,11 +207,7 @@ template<class T>
 GenerationScoreInfo ga::GeneticAlgorithm<T>::calculateGenerationScoreInfo() const{
     Score bestScore {this->populationScore.at(this->getCurrentBestIndividualIndex())};
     Score worstScore {this->populationScore.at(this->getCurrentWorstIndividualIndex())};
-    double avg {0}, stdDeviation {0};
-
-    // Calculate average
-    for (auto& score : this->populationScore) avg += (double)score;
-    avg /= this->populationScore.size();
+    double avg {this->getCurrentAverageFitness()}, stdDeviation {0};
 
     // Calculate std deviation
     for (auto& score : this->populationScore) stdDeviation += ((double)score - avg) * ((double)score - avg);
@@ -250,3 +246,43 @@ template std::vector<GenerationScoreInfo> ga::GeneticAlgorithm<GeneBin>::getConv
 template std::vector<GenerationScoreInfo> ga::GeneticAlgorithm<GeneInt>::getConvergenceTable() const;
 template std::vector<GenerationScoreInfo> ga::GeneticAlgorithm<GeneIntPerm>::getConvergenceTable() const;
 template std::vector<GenerationScoreInfo> ga::GeneticAlgorithm<GeneReal>::getConvergenceTable() const;
+
+template<class T>
+double ga::GeneticAlgorithm<T>::getCurrentAverageFitness() const {
+    double sum {0};
+    for (auto& score : this->populationScore)
+        sum += (double)score;
+    return sum / (double)this->populationScore.size();
+}
+template double ga::GeneticAlgorithm<GeneBin>::getCurrentAverageFitness() const;
+template double ga::GeneticAlgorithm<GeneInt>::getCurrentAverageFitness() const;
+template double ga::GeneticAlgorithm<GeneIntPerm>::getCurrentAverageFitness() const;
+template double ga::GeneticAlgorithm<GeneReal>::getCurrentAverageFitness() const;
+
+template<class T>
+Scores GeneticAlgorithm<T>::calculateScoresScaled() const{
+    double fmin {this->populationScore.at(this->getCurrentWorstIndividualIndex())},
+           fmax {this->populationScore.at(this->getCurrentBestIndividualIndex())},
+           favg {this->getCurrentAverageFitness()},
+           alpha, beta, d;
+
+    if (fmin > (this->linearScalingC * favg - fmax) / (this->linearScalingC - 1)){
+        d = (fmax - favg);
+        alpha = favg * (this->linearScalingC - 1) / d;
+        beta = favg * (fmax - this->linearScalingC * favg) / d;
+    }else{
+        d = (favg - fmin);
+        alpha = favg / d;
+        beta = -fmin * favg / d;
+    }
+
+    Scores newScores;
+    for (auto &score : this->populationScore)
+        newScores.push_back(alpha * score + beta);
+
+    return newScores;
+}
+template Scores ga::GeneticAlgorithm<GeneBin>::calculateScoresScaled() const;
+template Scores ga::GeneticAlgorithm<GeneInt>::calculateScoresScaled() const;
+template Scores ga::GeneticAlgorithm<GeneIntPerm>::calculateScoresScaled() const;
+template Scores ga::GeneticAlgorithm<GeneReal>::calculateScoresScaled() const;
