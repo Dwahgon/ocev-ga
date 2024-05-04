@@ -67,9 +67,11 @@ void GeneticAlgorithm<T>::calculatePopulationScore(){
 
     auto workloadFunction {[this](std::size_t ti, std::size_t workloadSize){
         Scores scores;
-        std::size_t lastI = MIN(population.size(), (ti + 1) * workloadSize) - 1;
-        for(std::size_t i {ti * workloadSize}; i <= lastI; i++){
-            scores.push_back(fitnessFunction(population.at(i)));
+        if (ti < population.size()){
+            std::size_t lastI = MIN(population.size(), (ti + 1) * workloadSize) - 1;
+            for(std::size_t i {ti * workloadSize}; i <= lastI; i++){
+                scores.push_back(fitnessFunction(population.at(i)));
+            }
         }
         return scores;
     }};

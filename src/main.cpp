@@ -113,6 +113,11 @@ int main(int argc, char* argv[])
     ga::GeneReal    rstart              {std::stod(confs.count("REAL_RANGE_START")  ? confs.at("REAL_RANGE_START")  : std::to_string(DBL_MIN))},
                     rend                {std::stod(confs.count("REAL_RANGE_END")    ? confs.at("REAL_RANGE_END")    : std::to_string(DBL_MAX))};
 
+    if (pop % 2){
+        std::cout << "Population must be a pair" << std::endl;
+        return 1;
+    }
+
     // Configure selection function
     ga::SelectionFunction selectionFunc;
     switch (stringToSelectionEnum(selection))
