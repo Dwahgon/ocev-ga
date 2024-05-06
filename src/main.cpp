@@ -293,7 +293,7 @@ int main(int argc, char* argv[])
         switch (stringToObjectiveEnum(objective))
         {
         case NQUEENS:
-            fitnessFunc = [](const ga::Chromosome<ga::GeneIntPerm> &chromosome) {return chromosome.size() - nQueens(chromosome) - 1;};
+            fitnessFunc = [](const ga::Chromosome<ga::GeneIntPerm> &chromosome) {return (double)(chromosome.size() - nQueens(chromosome) - 1)/((double)chromosome.size() - 1.0);};
             break;
         default: {
             std::cout << "Objective not supported for integer permutation representations: " << objective << std::endl;
