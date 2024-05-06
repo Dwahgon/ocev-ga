@@ -74,3 +74,7 @@ bool sat::Formula::solve(std::vector<unsigned int> values) const
 std::size_t sat::Formula::getVarCount() const{
     return this->varCount;
 }
+
+std::size_t sat::Formula::getClauseCount() const {
+    return this->clauses.size();
+}

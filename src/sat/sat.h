@@ -28,6 +28,7 @@ namespace sat
         bool solve(std::vector<unsigned int> values) const;
         std::size_t score(const std::vector<unsigned int> &values) const;
         std::size_t getVarCount() const;
+        std::size_t getClauseCount() const;
     };
 }
 

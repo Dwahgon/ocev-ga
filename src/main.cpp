@@ -144,7 +144,7 @@ int main(int argc, char* argv[])
         case SAT:{
             formula = new sat::Formula(parseDimacsFormula(std::cin));
             dim = formula->getVarCount();
-            fitnessFunc = std::bind(&sat::Formula::score, formula, std::placeholders::_1);
+            fitnessFunc = [formula](ga::Chromosome<ga::GeneBin> chromosome){return (double)formula->score(chromosome) / (double)formula->getClauseCount();};
             break;
         }
         case FUNC1: {
