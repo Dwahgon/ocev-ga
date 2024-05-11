@@ -34,7 +34,11 @@ namespace ga {
 
         void setPopulation(const Population<T> population);
 
+        Scores calculateScoresScaled() const;
+
         public:
+            double linearScalingC = 1.2;
+
             GeneticAlgorithm(const unsigned long seed, std::size_t populationSize, const PopulationGenerator<T> populationGenerator, const FitnessFunction<T> fitnessFunction, const SelectionFunction selectionFunction, const CrossoverFunction<T> crossoverFunction, const MutationFunction<T> mutationFunction, double crossoverRate, double mutationRate, bool elitism, short threads);
 
             void initPopulation();
@@ -49,6 +53,7 @@ namespace ga {
 
             std::size_t getCurrentBestIndividualIndex() const;
             std::size_t getCurrentWorstIndividualIndex() const;
+            double getCurrentAverageFitness() const;
 
             GeneticAlgorithmSolution<T> getSolution() const;
             std::vector<GenerationScoreInfo> getConvergenceTable() const;
