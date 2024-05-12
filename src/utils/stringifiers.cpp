@@ -109,8 +109,7 @@ std::string gaSolutionToString(ga::GeneticAlgorithm<T> &ga, std::size_t dim, dou
     ga::GeneticAlgorithmSolution<T> solution {ga.getSolution()};
     std::ostringstream stringStream;
 
-    stringStream << chromosomeToString(solution.chromosome, dim)
-        << "\nFitness:\t" << solution.score
+    stringStream << "Fitness:\t" << solution.score
         << "\nFitness - Worst Case Offset:\t" << solution.score - C;
 
     return stringStream.str();

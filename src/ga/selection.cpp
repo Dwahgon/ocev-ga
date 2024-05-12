@@ -56,9 +56,5 @@ std::vector<std::size_t> ga::tournamentSelection(std::mt19937& rng, std::size_t 
         tournament.clear();
     }
 
-    // for (auto &i : selectedIndividuals)
-    //     std::cout << i << " ";
-    // std::cout << std::endl;
-
     return selectedIndividuals;
 }
