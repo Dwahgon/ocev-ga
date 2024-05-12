@@ -3,6 +3,7 @@
 #include <random>
 #include <algorithm>
 #include <thread>
+#include <unordered_set>
 #include <future>
 
 using namespace ga;
@@ -13,6 +14,7 @@ template<class T>
 GeneticAlgorithm<T>::GeneticAlgorithm(
     const unsigned long seed,
     const std::size_t populationSize,
+    const std::size_t generationGap,
     const PopulationGenerator<T> populationGenerator,
     const FitnessFunction<T> fitnessFunction,
     const SelectionFunction selectionFunction,
@@ -25,6 +27,7 @@ GeneticAlgorithm<T>::GeneticAlgorithm(
 )
     : seed(seed),
     populationSize(populationSize),
+    generationGap(generationGap),
     populationGenerator(populationGenerator),
     fitnessFunction(fitnessFunction),
     selectionFunction(selectionFunction),
@@ -37,10 +40,10 @@ GeneticAlgorithm<T>::GeneticAlgorithm(
     currentGeneration(0),
     rng(std::mt19937(seed))
     {}
-template GeneticAlgorithm<GeneInt>::GeneticAlgorithm(const unsigned long, const std::size_t, const PopulationGenerator<GeneInt>, const FitnessFunction<GeneInt>, const SelectionFunction, const CrossoverFunction<GeneInt>, const MutationFunction<GeneInt>, double, double, bool, short);
-template GeneticAlgorithm<GeneIntPerm>::GeneticAlgorithm(const unsigned long, const std::size_t, const PopulationGenerator<GeneIntPerm>, const FitnessFunction<GeneIntPerm>, const SelectionFunction, const CrossoverFunction<GeneIntPerm>, const MutationFunction<GeneIntPerm>, double, double, bool, short);
-template GeneticAlgorithm<GeneBin>::GeneticAlgorithm(const unsigned long, const std::size_t, const PopulationGenerator<GeneBin>, const FitnessFunction<GeneBin>, const SelectionFunction, const CrossoverFunction<GeneBin>, const MutationFunction<GeneBin>, double, double, bool, short);
-template GeneticAlgorithm<GeneReal>::GeneticAlgorithm(const unsigned long, const std::size_t, const PopulationGenerator<GeneReal>, const FitnessFunction<GeneReal>, const SelectionFunction, const CrossoverFunction<GeneReal>, const MutationFunction<GeneReal>, double, double, bool, short);
+template GeneticAlgorithm<GeneInt>::GeneticAlgorithm(const unsigned long, const std::size_t, const std::size_t, const PopulationGenerator<GeneInt>, const FitnessFunction<GeneInt>, const SelectionFunction, const CrossoverFunction<GeneInt>, const MutationFunction<GeneInt>, double, double, bool, short);
+template GeneticAlgorithm<GeneIntPerm>::GeneticAlgorithm(const unsigned long, const std::size_t, const std::size_t, const PopulationGenerator<GeneIntPerm>, const FitnessFunction<GeneIntPerm>, const SelectionFunction, const CrossoverFunction<GeneIntPerm>, const MutationFunction<GeneIntPerm>, double, double, bool, short);
+template GeneticAlgorithm<GeneBin>::GeneticAlgorithm(const unsigned long, const std::size_t, const std::size_t, const PopulationGenerator<GeneBin>, const FitnessFunction<GeneBin>, const SelectionFunction, const CrossoverFunction<GeneBin>, const MutationFunction<GeneBin>, double, double, bool, short);
+template GeneticAlgorithm<GeneReal>::GeneticAlgorithm(const unsigned long, const std::size_t, const std::size_t, const PopulationGenerator<GeneReal>, const FitnessFunction<GeneReal>, const SelectionFunction, const CrossoverFunction<GeneReal>, const MutationFunction<GeneReal>, double, double, bool, short);
 
 
 template<class T>
@@ -160,9 +163,10 @@ template<class T>
 void GeneticAlgorithm<T>::step() {
     if (!this->population.size()) return;
     std::uniform_real_distribution<double> dist(0.0, 1.0);
+    std::uniform_int_distribution<std::size_t> populationDist(0, this->populationSize-1);
 
     // Select individuals
-    std::vector<std::size_t> selectedIndividuals = this->selectionFunction(this->rng, this->populationSize, this->calculateScoresScaled());
+    std::vector<std::size_t> selectedIndividuals = this->selectionFunction(this->rng, this->populationSize - this->generationGap, this->calculateScoresScaled());
 
     // Create new population
     Population<T> newPopulation;
@@ -185,6 +189,17 @@ void GeneticAlgorithm<T>::step() {
     // Mutation
     for (std::size_t i = 0; i < newPopulation.size(); i++){
         newPopulation[i] = this->mutationFunction(this->rng, newPopulation.at(i), this->mutationRate);
+    }
+
+    // Generation Gap
+    std::unordered_set<std::size_t> survivors;
+    std::size_t survivor;
+    for (std::size_t i = 1; i <= this->generationGap; i++ ){
+        do{
+            survivor = populationDist(this->rng);
+        }while(survivors.count(survivor));
+        survivors.insert(survivor);
+        newPopulation.push_back(this->population.at(survivor));
     }
 
     // Elitism

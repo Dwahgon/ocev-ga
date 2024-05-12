@@ -13,6 +13,7 @@ namespace ga {
     class GeneticAlgorithm{
         const unsigned long seed;
         const std::size_t populationSize;
+        const std::size_t generationGap;
         const PopulationGenerator<T> populationGenerator;
         const FitnessFunction<T> fitnessFunction;
         const SelectionFunction selectionFunction;
@@ -39,7 +40,7 @@ namespace ga {
         public:
             double linearScalingC = 1.2;
 
-            GeneticAlgorithm(const unsigned long seed, std::size_t populationSize, const PopulationGenerator<T> populationGenerator, const FitnessFunction<T> fitnessFunction, const SelectionFunction selectionFunction, const CrossoverFunction<T> crossoverFunction, const MutationFunction<T> mutationFunction, double crossoverRate, double mutationRate, bool elitism, short threads);
+            GeneticAlgorithm(const unsigned long seed, std::size_t populationSize, std::size_t generationGap, const PopulationGenerator<T> populationGenerator, const FitnessFunction<T> fitnessFunction, const SelectionFunction selectionFunction, const CrossoverFunction<T> crossoverFunction, const MutationFunction<T> mutationFunction, double crossoverRate, double mutationRate, bool elitism, short threads);
 
             void initPopulation();
             Population<T> getPopulation() const;

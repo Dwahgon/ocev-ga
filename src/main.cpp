@@ -15,7 +15,7 @@
 #include <float.h>
 #include <fstream>
 
-std::size_t dim, pop, precision, generations, tournamentK;
+std::size_t dim, pop, generationGap, precision, generations, tournamentK;
 std::string representation, selection, crossover, mutation, objective;
 double crossoverRate, mutationRate, worstCaseOffset, inequalityPenalty, equalityPenalty, tournamentKp;
 bool maximize, elitism;
@@ -71,6 +71,7 @@ void evolutionaryLoop(ga::GeneticAlgorithm<T> &geneticAlgorithm, std::string out
     std::cout   << "POP: "                  << pop                  << '\n'
                 << "DIM: "                  << dim                  << '\n'
                 << "GENERATIONS: "          << generations          << '\n'
+                << "GENERATION GAP: "       << generationGap        << '\n'
                 << "OBJECTIVE: "            << objective            << '\n'
                 << "SELECTION: "            << selection            << '\n'
                 << "CROSSOVER: "            << crossover            << '\n'
@@ -195,6 +196,7 @@ void runGeneBinGA(ga::SelectionFunction selectionFunc, std::string outPath){
     ga::GeneticAlgorithm<ga::GeneBin> geneticAlgorithm {
         seed,
         pop,
+        generationGap,
         popgen,
         fitnessFunc,
         selectionFunc,
@@ -274,6 +276,7 @@ void runGeneIntPermGA(ga::SelectionFunction selectionFunc, std::string outPath){
     ga::GeneticAlgorithm<ga::GeneIntPerm> geneticAlgorithm {
         seed,
         pop,
+        generationGap,
         popgen,
         fitnessFunc,
         selectionFunc,
@@ -297,6 +300,7 @@ int main(int argc, char* argv[])
     confmap confs {parseConf(confPath)};
     dim                 = confs.count("DIM") ? std::stoul(confs.at("DIM")) : 0;
     pop                 = std::stoul(confs.at("POP"));
+    generationGap       = confs.count("GENERATION_GAP") ? std::stoul(confs.at("GENERATION_GAP")) : 0;
     precision           = confs.count("PRECISION") ? std::stoul(confs.at("PRECISION")) : 0;
     generations         = std::stoul(confs.at("GENERATIONS"));
     tournamentK         = confs.count("TOURNAMENT_K") ? std::stoul(confs.at("TOURNAMENT_K")) : 2;
