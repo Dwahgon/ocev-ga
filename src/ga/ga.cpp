@@ -281,21 +281,24 @@ Scores GeneticAlgorithm<T>::calculateScoresScaled() const{
            favg {this->getCurrentAverageFitness()},
            alpha, beta, d;
 
-    if (fmin > (this->linearScalingC * favg - fmax) / (this->linearScalingC - 1)){
-        d = (fmax - favg);
-        alpha = favg * (this->linearScalingC - 1) / d;
-        beta = favg * (fmax - this->linearScalingC * favg) / d;
-    }else{
-        d = (favg - fmin);
-        alpha = favg / d;
-        beta = -fmin * favg / d;
+    if (fmax != fmin){
+        if (fmin > (this->linearScalingC * favg - fmax) / (this->linearScalingC - 1)){
+            d = (fmax - favg);
+            alpha = favg * (this->linearScalingC - 1) / d;
+            beta = favg * (fmax - this->linearScalingC * favg) / d;
+        }else{
+            d = (favg - fmin);
+            alpha = favg / d;
+            beta = -fmin * favg / d;
+        }
+
+        Scores newScores;
+        for (auto &score : this->populationScore)
+            newScores.push_back(alpha * score + beta);
+        return newScores;
     }
 
-    Scores newScores;
-    for (auto &score : this->populationScore)
-        newScores.push_back(alpha * score + beta);
-
-    return newScores;
+    return this->populationScore;
 }
 template Scores ga::GeneticAlgorithm<GeneBin>::calculateScoresScaled() const;
 template Scores ga::GeneticAlgorithm<GeneInt>::calculateScoresScaled() const;
