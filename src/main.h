@@ -32,4 +32,10 @@ enum ObjectiveEnum {
     NQUEENS
 };
 
+enum LinearScalingEnum {
+    NONE,
+    LINEAR,
+    EASE_IN_OUT_CUBIC,
+};
+
 #endif

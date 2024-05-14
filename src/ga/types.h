@@ -29,6 +29,7 @@ namespace ga
     using CrossoverFunction = std::function<std::vector<Chromosome<T>>(std::mt19937&, const Chromosome<T>&, const Chromosome<T>&)>;
     template <class T>
     using MutationFunction = std::function<Chromosome<T>(std::mt19937&, const Chromosome<T>&, double p_m)>;
+    using LinearScalingFunction = std::function<double(std::size_t)>;
 
     struct GenerationScoreInfo {
         Score best, worst;

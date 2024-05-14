@@ -5,6 +5,7 @@
 #include <thread>
 #include <unordered_set>
 #include <future>
+#include <iostream>
 
 using namespace ga;
 
@@ -20,6 +21,8 @@ GeneticAlgorithm<T>::GeneticAlgorithm(
     const SelectionFunction selectionFunction,
     const CrossoverFunction<T> crossoverFunction,
     const MutationFunction<T> mutationFunction,
+    const LinearScalingFunction linearScalingFunction,
+    const bool linearScalingEnabled,
     double crossoverRate,
     double mutationRate,
     bool elitism,
@@ -33,17 +36,20 @@ GeneticAlgorithm<T>::GeneticAlgorithm(
     selectionFunction(selectionFunction),
     crossoverFunction(crossoverFunction),
     mutationFunction(mutationFunction),
+    linearScalingFunction(linearScalingFunction),
+    linearScalingEnabled(linearScalingEnabled),
     crossoverRate(crossoverRate),
     mutationRate(mutationRate),
     elitism(elitism),
     threads(threads),
     currentGeneration(0),
+    linearScalingC(0),
     rng(std::mt19937(seed))
     {}
-template GeneticAlgorithm<GeneInt>::GeneticAlgorithm(const unsigned long, const std::size_t, const std::size_t, const PopulationGenerator<GeneInt>, const FitnessFunction<GeneInt>, const SelectionFunction, const CrossoverFunction<GeneInt>, const MutationFunction<GeneInt>, double, double, bool, short);
-template GeneticAlgorithm<GeneIntPerm>::GeneticAlgorithm(const unsigned long, const std::size_t, const std::size_t, const PopulationGenerator<GeneIntPerm>, const FitnessFunction<GeneIntPerm>, const SelectionFunction, const CrossoverFunction<GeneIntPerm>, const MutationFunction<GeneIntPerm>, double, double, bool, short);
-template GeneticAlgorithm<GeneBin>::GeneticAlgorithm(const unsigned long, const std::size_t, const std::size_t, const PopulationGenerator<GeneBin>, const FitnessFunction<GeneBin>, const SelectionFunction, const CrossoverFunction<GeneBin>, const MutationFunction<GeneBin>, double, double, bool, short);
-template GeneticAlgorithm<GeneReal>::GeneticAlgorithm(const unsigned long, const std::size_t, const std::size_t, const PopulationGenerator<GeneReal>, const FitnessFunction<GeneReal>, const SelectionFunction, const CrossoverFunction<GeneReal>, const MutationFunction<GeneReal>, double, double, bool, short);
+template GeneticAlgorithm<GeneInt>::GeneticAlgorithm(const unsigned long, const std::size_t, const std::size_t, const PopulationGenerator<GeneInt>, const FitnessFunction<GeneInt>, const SelectionFunction, const CrossoverFunction<GeneInt>, const MutationFunction<GeneInt>, LinearScalingFunction, const bool, double, double, bool, short);
+template GeneticAlgorithm<GeneIntPerm>::GeneticAlgorithm(const unsigned long, const std::size_t, const std::size_t, const PopulationGenerator<GeneIntPerm>, const FitnessFunction<GeneIntPerm>, const SelectionFunction, const CrossoverFunction<GeneIntPerm>, const MutationFunction<GeneIntPerm>, LinearScalingFunction, const bool, double, double, bool, short);
+template GeneticAlgorithm<GeneBin>::GeneticAlgorithm(const unsigned long, const std::size_t, const std::size_t, const PopulationGenerator<GeneBin>, const FitnessFunction<GeneBin>, const SelectionFunction, const CrossoverFunction<GeneBin>, const MutationFunction<GeneBin>, LinearScalingFunction, const bool, double, double, bool, short);
+template GeneticAlgorithm<GeneReal>::GeneticAlgorithm(const unsigned long, const std::size_t, const std::size_t, const PopulationGenerator<GeneReal>, const FitnessFunction<GeneReal>, const SelectionFunction, const CrossoverFunction<GeneReal>, const MutationFunction<GeneReal>, LinearScalingFunction, const bool, double, double, bool, short);
 
 
 template<class T>
@@ -140,6 +146,7 @@ void GeneticAlgorithm<T>::reset() {
     this->solution = Chromosome<T>();
     this->solutionScore = 0;
     this->currentGeneration = 0;
+    this->linearScalingC = 0;
     this->rng.seed(this->seed);
     this->convergenceTable.clear();
 }
@@ -164,6 +171,9 @@ void GeneticAlgorithm<T>::step() {
     if (!this->population.size()) return;
     std::uniform_real_distribution<double> dist(0.0, 1.0);
     std::uniform_int_distribution<std::size_t> populationDist(0, this->populationSize-1);
+
+    if (this->linearScalingEnabled)
+        this->linearScalingC = 1.2 + 0.8 * this->linearScalingFunction(this->currentGeneration);
 
     // Select individuals
     std::vector<std::size_t> selectedIndividuals = this->selectionFunction(this->rng, this->populationSize - this->generationGap, this->calculateScoresScaled());
@@ -276,6 +286,8 @@ template double ga::GeneticAlgorithm<GeneReal>::getCurrentAverageFitness() const
 
 template<class T>
 Scores GeneticAlgorithm<T>::calculateScoresScaled() const{
+    if(!this->linearScalingEnabled) return this->populationScore;
+
     double fmin {this->populationScore.at(this->getCurrentWorstIndividualIndex())},
            fmax {this->populationScore.at(this->getCurrentBestIndividualIndex())},
            favg {this->getCurrentAverageFitness()},

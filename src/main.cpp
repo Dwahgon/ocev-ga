@@ -16,13 +16,15 @@
 #include <fstream>
 
 std::size_t dim, pop, generationGap, precision, generations, tournamentK;
-std::string representation, selection, crossover, mutation, objective;
+std::string representation, selection, crossover, mutation, objective, linearScalingFuncStr;
 double crossoverRate, mutationRate, worstCaseOffset, inequalityPenalty, equalityPenalty, tournamentKp;
-bool maximize, elitism;
+bool maximize, elitism, linearScalingEnabled;
 int threads;
 unsigned long seed;
 ga::GeneInt istart, iend;
 ga::GeneReal rstart, rend;
+ga::SelectionFunction selectionFunc;
+ga::LinearScalingFunction linearScalingFunc;
 
 RepresentationEnum stringToRepresentationEnum(std::string const& s){
     if(s == "binary") return BINARY;
@@ -65,6 +67,14 @@ ObjectiveEnum stringToObjectiveEnum(std::string const& s){
     exit(1);
 }
 
+LinearScalingEnum stringToLinearScalingEnum(std::string const& s){
+    if(s == "none") return NONE;
+    if(s == "linear") return LINEAR;
+    if(s == "easeinoutcubic") return EASE_IN_OUT_CUBIC;
+    std::cout << "Invalid linear scaling function: " << s;
+    exit(1);
+}
+
 template <class T>
 void evolutionaryLoop(ga::GeneticAlgorithm<T> &geneticAlgorithm, std::string outPath){
     // Print conf
@@ -93,7 +103,6 @@ void evolutionaryLoop(ga::GeneticAlgorithm<T> &geneticAlgorithm, std::string out
 
     // Run evolutionary loop
     for(std::size_t i = 0; i < generations; i++){
-        geneticAlgorithm.linearScalingC = 1.2 + 0.8 * ((double)i / (double) generations);
         geneticAlgorithm.step();
         std::cout << gaGenerationScoreInfoToString(geneticAlgorithm) << std::endl;
     }
@@ -106,7 +115,7 @@ void evolutionaryLoop(ga::GeneticAlgorithm<T> &geneticAlgorithm, std::string out
 template void evolutionaryLoop(ga::GeneticAlgorithm<ga::GeneBin> &geneticAlgorithm, std::string outPath);
 template void evolutionaryLoop(ga::GeneticAlgorithm<ga::GeneIntPerm> &geneticAlgorithm, std::string outPath);
 
-void runGeneBinGA(ga::SelectionFunction selectionFunc, std::string outPath){
+void runGeneBinGA(std::string outPath){
     // Configure GA
     ga::BinaryToNumericConversionFitness<double>* binToDoubleConversionFitness = NULL;
     ga::BinaryToNumericConversionFitness<unsigned int>* binToUIConversionFitness = NULL;
@@ -202,6 +211,8 @@ void runGeneBinGA(ga::SelectionFunction selectionFunc, std::string outPath){
         selectionFunc,
         crossoverFunc,
         mutationFunc,
+        linearScalingFunc,
+        linearScalingEnabled,
         crossoverRate,
         mutationRate,
         elitism,
@@ -231,7 +242,7 @@ void runGeneBinGA(ga::SelectionFunction selectionFunc, std::string outPath){
     delete formula;
 }
 
-void runGeneIntPermGA(ga::SelectionFunction selectionFunc, std::string outPath){
+void runGeneIntPermGA(std::string outPath){
     ga::FitnessFunction<ga::GeneIntPerm> fitnessFunc;
     switch (stringToObjectiveEnum(objective))
     {
@@ -282,6 +293,8 @@ void runGeneIntPermGA(ga::SelectionFunction selectionFunc, std::string outPath){
         selectionFunc,
         crossoverFunc,
         mutationFunc,
+        linearScalingFunc,
+        linearScalingEnabled,
         crossoverRate,
         mutationRate,
         elitism,
@@ -298,31 +311,32 @@ int main(int argc, char* argv[])
 
     // Load conf
     confmap confs {parseConf(confPath)};
-    dim                 = confs.count("DIM") ? std::stoul(confs.at("DIM")) : 0;
-    pop                 = std::stoul(confs.at("POP"));
-    generationGap       = confs.count("GENERATION_GAP") ? std::stoul(confs.at("GENERATION_GAP")) : 0;
-    precision           = confs.count("PRECISION") ? std::stoul(confs.at("PRECISION")) : 0;
-    generations         = std::stoul(confs.at("GENERATIONS"));
-    tournamentK         = confs.count("TOURNAMENT_K") ? std::stoul(confs.at("TOURNAMENT_K")) : 2;
-    representation      = confs.at("REPRESENTATION");
-    selection           = confs.at("SELECTION");
-    crossover           = confs.at("CROSSOVER");
-    mutation            = confs.at("MUTATION");
-    objective           = confs.at("OBJECTIVE");
-    crossoverRate       = std::stod(confs.at("CROSSOVER_RATE"));
-    mutationRate        = std::stod(confs.at("MUTATION_RATE"));
-    worstCaseOffset     = confs.count("WORST_CASE_OFFSET") ? std::stod(confs.at("WORST_CASE_OFFSET")) : 0.0;
-    inequalityPenalty   = confs.count("INEQUALITY_PENALTY") ? std::stod(confs.at("INEQUALITY_PENALTY")) : 0.0;
-    equalityPenalty     = confs.count("EQUALITY_PENALTY") ? std::stod(confs.at("EQUALITY_PENALTY")) : 0.0;
-    tournamentKp        = confs.count("TOURNAMENT_KP") ? std::stod(confs.at("TOURNAMENT_KP")) : 1.0;
-    maximize            = confs.count("MAXIMIZE") ? confs.at("MAXIMIZE") == "true" : false;
-    elitism             = confs.at("ELITISM") == "true";
-    threads             = confs.count("THREADS") ? std::stoi(confs.at("THREADS")) : 1;
-    seed                = confs.count("SEED") && confs.at("SEED").length() ? std::stoul(confs.at("SEED")) : std::random_device()();
-    istart              = std::stoi(confs.count("INT_RANGE_START")   ? confs.at("INT_RANGE_START")   : std::to_string(INT32_MIN));
-    iend                = std::stoi(confs.count("INT_RANGE_END")     ? confs.at("INT_RANGE_END")     : std::to_string(INT32_MAX));
-    rstart              = std::stod(confs.count("REAL_RANGE_START")  ? confs.at("REAL_RANGE_START")  : std::to_string(DBL_MIN));
-    rend                = std::stod(confs.count("REAL_RANGE_END")    ? confs.at("REAL_RANGE_END")    : std::to_string(DBL_MAX));
+    dim                     = confs.count("DIM") ? std::stoul(confs.at("DIM")) : 0;
+    pop                     = std::stoul(confs.at("POP"));
+    generationGap           = confs.count("GENERATION_GAP") ? std::stoul(confs.at("GENERATION_GAP")) : 0;
+    precision               = confs.count("PRECISION") ? std::stoul(confs.at("PRECISION")) : 0;
+    generations             = std::stoul(confs.at("GENERATIONS"));
+    tournamentK             = confs.count("TOURNAMENT_K") ? std::stoul(confs.at("TOURNAMENT_K")) : 2;
+    representation          = confs.at("REPRESENTATION");
+    selection               = confs.at("SELECTION");
+    crossover               = confs.at("CROSSOVER");
+    mutation                = confs.at("MUTATION");
+    objective               = confs.at("OBJECTIVE");
+    linearScalingFuncStr    = confs.count("LINEAR_SCALING_FUNC") ? confs.at("LINEAR_SCALING_FUNC") : "none";
+    crossoverRate           = std::stod(confs.at("CROSSOVER_RATE"));
+    mutationRate            = std::stod(confs.at("MUTATION_RATE"));
+    worstCaseOffset         = confs.count("WORST_CASE_OFFSET") ? std::stod(confs.at("WORST_CASE_OFFSET")) : 0.0;
+    inequalityPenalty       = confs.count("INEQUALITY_PENALTY") ? std::stod(confs.at("INEQUALITY_PENALTY")) : 0.0;
+    equalityPenalty         = confs.count("EQUALITY_PENALTY") ? std::stod(confs.at("EQUALITY_PENALTY")) : 0.0;
+    tournamentKp            = confs.count("TOURNAMENT_KP") ? std::stod(confs.at("TOURNAMENT_KP")) : 1.0;
+    maximize                = confs.count("MAXIMIZE") ? confs.at("MAXIMIZE") == "true" : false;
+    elitism                 = confs.at("ELITISM") == "true";
+    threads                 = confs.count("THREADS") ? std::stoi(confs.at("THREADS")) : 1;
+    seed                    = confs.count("SEED") && confs.at("SEED").length() ? std::stoul(confs.at("SEED")) : std::random_device()();
+    istart                  = std::stoi(confs.count("INT_RANGE_START")   ? confs.at("INT_RANGE_START")   : std::to_string(INT32_MIN));
+    iend                    = std::stoi(confs.count("INT_RANGE_END")     ? confs.at("INT_RANGE_END")     : std::to_string(INT32_MAX));
+    rstart                  = std::stod(confs.count("REAL_RANGE_START")  ? confs.at("REAL_RANGE_START")  : std::to_string(DBL_MIN));
+    rend                    = std::stod(confs.count("REAL_RANGE_END")    ? confs.at("REAL_RANGE_END")    : std::to_string(DBL_MAX));
 
     if (pop % 2){
         std::cout << "Population must be a pair" << std::endl;
@@ -330,7 +344,6 @@ int main(int argc, char* argv[])
     }
 
     // Configure selection function
-    ga::SelectionFunction selectionFunc;
     switch (stringToSelectionEnum(selection))
     {
         case ROULETTE:
@@ -342,10 +355,29 @@ int main(int argc, char* argv[])
     }
 
 
+    switch (stringToLinearScalingEnum(linearScalingFuncStr))
+    {
+    case NONE:
+        linearScalingEnabled = false;
+        linearScalingFunc = [](std::size_t generation){return 0.0;};
+        break;
+    case LINEAR:
+        linearScalingEnabled = true;
+        linearScalingFunc = [](std::size_t generation){return (double)generation / (double)generations;};
+        break;
+    case EASE_IN_OUT_CUBIC:
+        linearScalingEnabled = true;
+        linearScalingFunc = [](std::size_t generation){
+            double x = (double)generation / (double)generations;
+            return x < 0.5 ? 4.0 * x * x * x : 1.0 - pow(-2.0 * x + 2.0, 3.0) / 2.0;
+        };
+        break;
+    }
+
     switch (stringToRepresentationEnum(representation))
     {
-    case BINARY: runGeneBinGA(selectionFunc, outPath); break;
-    case INTEGER_PERM: runGeneIntPermGA(selectionFunc, outPath); break;
+    case BINARY: runGeneBinGA(outPath); break;
+    case INTEGER_PERM: runGeneIntPermGA(outPath); break;
     default: {
         std::cout << "Representation '" << representation  <<"' not supported yet" << std::endl;
         exit(1);
