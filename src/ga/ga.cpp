@@ -15,13 +15,13 @@ template<class T>
 GeneticAlgorithm<T>::GeneticAlgorithm(
     const unsigned long seed,
     const std::size_t populationSize,
-    const std::size_t generationGap,
     const PopulationGenerator<T> populationGenerator,
     const FitnessFunction<T> fitnessFunction,
     const SelectionFunction selectionFunction,
     const CrossoverFunction<T> crossoverFunction,
     const MutationFunction<T> mutationFunction,
-    const LinearScalingFunction linearScalingFunction,
+    const EasingFunction steadyStateFunction,
+    const EasingFunction linearScalingFunction,
     const bool linearScalingEnabled,
     double crossoverRate,
     double mutationRate,
@@ -30,12 +30,12 @@ GeneticAlgorithm<T>::GeneticAlgorithm(
 )
     : seed(seed),
     populationSize(populationSize),
-    generationGap(generationGap),
     populationGenerator(populationGenerator),
     fitnessFunction(fitnessFunction),
     selectionFunction(selectionFunction),
     crossoverFunction(crossoverFunction),
     mutationFunction(mutationFunction),
+    steadyStateFunction(steadyStateFunction),
     linearScalingFunction(linearScalingFunction),
     linearScalingEnabled(linearScalingEnabled),
     crossoverRate(crossoverRate),
@@ -46,10 +46,10 @@ GeneticAlgorithm<T>::GeneticAlgorithm(
     linearScalingC(0),
     rng(std::mt19937(seed))
     {}
-template GeneticAlgorithm<GeneInt>::GeneticAlgorithm(const unsigned long, const std::size_t, const std::size_t, const PopulationGenerator<GeneInt>, const FitnessFunction<GeneInt>, const SelectionFunction, const CrossoverFunction<GeneInt>, const MutationFunction<GeneInt>, LinearScalingFunction, const bool, double, double, bool, short);
-template GeneticAlgorithm<GeneIntPerm>::GeneticAlgorithm(const unsigned long, const std::size_t, const std::size_t, const PopulationGenerator<GeneIntPerm>, const FitnessFunction<GeneIntPerm>, const SelectionFunction, const CrossoverFunction<GeneIntPerm>, const MutationFunction<GeneIntPerm>, LinearScalingFunction, const bool, double, double, bool, short);
-template GeneticAlgorithm<GeneBin>::GeneticAlgorithm(const unsigned long, const std::size_t, const std::size_t, const PopulationGenerator<GeneBin>, const FitnessFunction<GeneBin>, const SelectionFunction, const CrossoverFunction<GeneBin>, const MutationFunction<GeneBin>, LinearScalingFunction, const bool, double, double, bool, short);
-template GeneticAlgorithm<GeneReal>::GeneticAlgorithm(const unsigned long, const std::size_t, const std::size_t, const PopulationGenerator<GeneReal>, const FitnessFunction<GeneReal>, const SelectionFunction, const CrossoverFunction<GeneReal>, const MutationFunction<GeneReal>, LinearScalingFunction, const bool, double, double, bool, short);
+template GeneticAlgorithm<GeneInt>::GeneticAlgorithm(const unsigned long, const std::size_t, const PopulationGenerator<GeneInt>, const FitnessFunction<GeneInt>, const SelectionFunction, const CrossoverFunction<GeneInt>, const MutationFunction<GeneInt>, EasingFunction, EasingFunction, const bool, double, double, bool, short);
+template GeneticAlgorithm<GeneIntPerm>::GeneticAlgorithm(const unsigned long, const std::size_t, const PopulationGenerator<GeneIntPerm>, const FitnessFunction<GeneIntPerm>, const SelectionFunction, const CrossoverFunction<GeneIntPerm>, const MutationFunction<GeneIntPerm>, EasingFunction, EasingFunction, const bool, double, double, bool, short);
+template GeneticAlgorithm<GeneBin>::GeneticAlgorithm(const unsigned long, const std::size_t, const PopulationGenerator<GeneBin>, const FitnessFunction<GeneBin>, const SelectionFunction, const CrossoverFunction<GeneBin>, const MutationFunction<GeneBin>, EasingFunction, EasingFunction, const bool, double, double, bool, short);
+template GeneticAlgorithm<GeneReal>::GeneticAlgorithm(const unsigned long, const std::size_t, const PopulationGenerator<GeneReal>, const FitnessFunction<GeneReal>, const SelectionFunction, const CrossoverFunction<GeneReal>, const MutationFunction<GeneReal>, EasingFunction, EasingFunction, const bool, double, double, bool, short);
 
 
 template<class T>
@@ -171,12 +171,16 @@ void GeneticAlgorithm<T>::step() {
     if (!this->population.size()) return;
     std::uniform_real_distribution<double> dist(0.0, 1.0);
     std::uniform_int_distribution<std::size_t> populationDist(0, this->populationSize-1);
+    std::size_t generationGap = (std::size_t)((double)this->populationSize * this->steadyStateFunction(this->currentGeneration));
+    generationGap = MIN(this->populationSize, generationGap + generationGap % 2);
+
+    std::cout << generationGap << std::endl;
 
     if (this->linearScalingEnabled)
         this->linearScalingC = 1.2 + 0.8 * this->linearScalingFunction(this->currentGeneration);
 
     // Select individuals
-    std::vector<std::size_t> selectedIndividuals = this->selectionFunction(this->rng, this->populationSize - this->generationGap, this->calculateScoresScaled());
+    std::vector<std::size_t> selectedIndividuals = this->selectionFunction(this->rng, generationGap, this->calculateScoresScaled());
 
     // Create new population
     Population<T> newPopulation;
@@ -204,7 +208,7 @@ void GeneticAlgorithm<T>::step() {
     // Generation Gap
     std::unordered_set<std::size_t> survivors;
     std::size_t survivor;
-    for (std::size_t i = 1; i <= this->generationGap; i++ ){
+    for (std::size_t i = 1; i <= this->populationSize - generationGap; i++ ){
         do{
             survivor = populationDist(this->rng);
         }while(survivors.count(survivor));

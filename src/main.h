@@ -33,9 +33,14 @@ enum ObjectiveEnum {
 };
 
 enum LinearScalingEnum {
-    NONE,
+    LS_NONE,
     LINEAR,
     EASE_IN_OUT_CUBIC,
+};
+
+enum SteadyStateEnum {
+    SS_NONE,
+    UNIFORM_STEPS,
 };
 
 #endif

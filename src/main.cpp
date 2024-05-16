@@ -15,8 +15,11 @@
 #include <float.h>
 #include <fstream>
 
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
+
+
 std::size_t dim, pop, generationGap, precision, generations, tournamentK;
-std::string representation, selection, crossover, mutation, objective, linearScalingFuncStr;
+std::string representation, selection, crossover, mutation, objective, linearScalingFuncStr, steadyStateFuncStr;
 double crossoverRate, mutationRate, worstCaseOffset, inequalityPenalty, equalityPenalty, tournamentKp;
 bool maximize, elitism, linearScalingEnabled;
 int threads;
@@ -24,7 +27,7 @@ unsigned long seed;
 ga::GeneInt istart, iend;
 ga::GeneReal rstart, rend;
 ga::SelectionFunction selectionFunc;
-ga::LinearScalingFunction linearScalingFunc;
+ga::EasingFunction linearScalingFunc, steadyStateFunc;
 
 RepresentationEnum stringToRepresentationEnum(std::string const& s){
     if(s == "binary") return BINARY;
@@ -68,10 +71,17 @@ ObjectiveEnum stringToObjectiveEnum(std::string const& s){
 }
 
 LinearScalingEnum stringToLinearScalingEnum(std::string const& s){
-    if(s == "none") return NONE;
+    if(s == "none") return LS_NONE;
     if(s == "linear") return LINEAR;
     if(s == "easeinoutcubic") return EASE_IN_OUT_CUBIC;
     std::cout << "Invalid linear scaling function: " << s;
+    exit(1);
+}
+
+SteadyStateEnum stringToSteadyStateEnum(std::string const& s){
+    if(s == "none") return SS_NONE;
+    if(s == "uniformsteps") return UNIFORM_STEPS;
+    std::cout << "Invalid steady step function: " << s;
     exit(1);
 }
 
@@ -205,12 +215,12 @@ void runGeneBinGA(std::string outPath){
     ga::GeneticAlgorithm<ga::GeneBin> geneticAlgorithm {
         seed,
         pop,
-        generationGap,
         popgen,
         fitnessFunc,
         selectionFunc,
         crossoverFunc,
         mutationFunc,
+        steadyStateFunc,
         linearScalingFunc,
         linearScalingEnabled,
         crossoverRate,
@@ -287,12 +297,12 @@ void runGeneIntPermGA(std::string outPath){
     ga::GeneticAlgorithm<ga::GeneIntPerm> geneticAlgorithm {
         seed,
         pop,
-        generationGap,
         popgen,
         fitnessFunc,
         selectionFunc,
         crossoverFunc,
         mutationFunc,
+        steadyStateFunc,
         linearScalingFunc,
         linearScalingEnabled,
         crossoverRate,
@@ -323,6 +333,7 @@ int main(int argc, char* argv[])
     mutation                = confs.at("MUTATION");
     objective               = confs.at("OBJECTIVE");
     linearScalingFuncStr    = confs.count("LINEAR_SCALING_FUNC") ? confs.at("LINEAR_SCALING_FUNC") : "none";
+    steadyStateFuncStr      = confs.count("STEADY_STATE_FUNC") ? confs.at("STEADY_STATE_FUNC") : "none";
     crossoverRate           = std::stod(confs.at("CROSSOVER_RATE"));
     mutationRate            = std::stod(confs.at("MUTATION_RATE"));
     worstCaseOffset         = confs.count("WORST_CASE_OFFSET") ? std::stod(confs.at("WORST_CASE_OFFSET")) : 0.0;
@@ -357,7 +368,7 @@ int main(int argc, char* argv[])
 
     switch (stringToLinearScalingEnum(linearScalingFuncStr))
     {
-    case NONE:
+    case LS_NONE:
         linearScalingEnabled = false;
         linearScalingFunc = [](std::size_t generation){return 0.0;};
         break;
@@ -372,6 +383,18 @@ int main(int argc, char* argv[])
             return x < 0.5 ? 4.0 * x * x * x : 1.0 - pow(-2.0 * x + 2.0, 3.0) / 2.0;
         };
         break;
+    }
+
+    switch (stringToSteadyStateEnum(steadyStateFuncStr))
+    {
+    case SS_NONE:
+        steadyStateFunc = [](std::size_t generation){return 1.0;};
+        break;
+    case UNIFORM_STEPS:
+        steadyStateFunc = [](std::size_t generation){
+            double x = MAX((double)(generation - 1), 0.0) / (double)generations;
+            return 0.1 + 0.1 * std::floor(x / 0.1);
+        };
     }
 
     switch (stringToRepresentationEnum(representation))

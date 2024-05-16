@@ -13,13 +13,13 @@ namespace ga {
     class GeneticAlgorithm{
         const unsigned long seed;
         const std::size_t populationSize;
-        const std::size_t generationGap;
         const PopulationGenerator<T> populationGenerator;
         const FitnessFunction<T> fitnessFunction;
         const SelectionFunction selectionFunction;
         const CrossoverFunction<T> crossoverFunction;
         const MutationFunction<T> mutationFunction;
-        const LinearScalingFunction linearScalingFunction;
+        const EasingFunction steadyStateFunction;
+        const EasingFunction linearScalingFunction;
         const bool linearScalingEnabled;
 
         const double crossoverRate;
@@ -44,13 +44,13 @@ namespace ga {
             GeneticAlgorithm(
                 const unsigned long seed,
                 std::size_t populationSize,
-                std::size_t generationGap,
                 const PopulationGenerator<T> populationGenerator,
                 const FitnessFunction<T> fitnessFunction,
                 const SelectionFunction selectionFunction,
                 const CrossoverFunction<T> crossoverFunction,
                 const MutationFunction<T> mutationFunction,
-                const LinearScalingFunction linearScalingFunction,
+                const EasingFunction steadyStateFunction,
+                const EasingFunction linearScalingFunction,
                 const bool linearScalingEnabled,
                 double crossoverRate,
                 double mutationRate,
