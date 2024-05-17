@@ -174,8 +174,6 @@ void GeneticAlgorithm<T>::step() {
     std::size_t generationGap = (std::size_t)((double)this->populationSize * this->steadyStateFunction(this->currentGeneration));
     generationGap = MIN(this->populationSize, generationGap + generationGap % 2);
 
-    std::cout << generationGap << std::endl;
-
     if (this->linearScalingEnabled)
         this->linearScalingC = 1.2 + 0.8 * this->linearScalingFunction(this->currentGeneration);
 

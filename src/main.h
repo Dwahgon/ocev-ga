@@ -1,6 +1,8 @@
 #ifndef MAIN_H
 #define MAIN_H
 
+#define PLOT_SCRIPT "plot.py"
+
 enum RepresentationEnum {
     BINARY,
     INTEGER,

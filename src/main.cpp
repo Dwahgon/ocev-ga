@@ -407,4 +407,9 @@ int main(int argc, char* argv[])
         break;
     }
     }
+
+    std::string plotScript{PLOT_SCRIPT};
+    system(("./" + plotScript + " " + outPath).c_str());
+
+    return 0;
 }
