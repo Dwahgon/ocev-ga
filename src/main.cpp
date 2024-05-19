@@ -14,6 +14,7 @@
 #include <iostream>
 #include <float.h>
 #include <fstream>
+#include <string.h>
 
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 
@@ -317,7 +318,24 @@ void runGeneIntPermGA(std::string outPath){
 
 int main(int argc, char* argv[])
 {
-    std::string confPath {argc > 1 ? argv[1] : "conf.conf"}, outPath {argc > 2 ? argv[2] : "out.csv"};
+    std::string confPath {""}, outPath {""};
+    bool showPlot = false;
+
+    for (int i = 1; i < argc; i++){
+        if (argv[i][0] == '-'){ // Flags
+            if(argv[i][1] == '-'){ // Word flags
+                showPlot = strcmp((argv[i] + 2), "show-plot") == 0 || showPlot;
+            }
+            else{ // Letter flags
+                showPlot = strstr((argv[i] + 1), "p") != NULL || showPlot;
+            }
+        }else{ // Arguments
+            if (!confPath.size()) confPath = argv[i];
+            else if(!outPath.size()) outPath = argv[i];
+        }
+    }
+    if (!confPath.size()) confPath = "conf.conf";
+    else if(!outPath.size()) outPath = "out.csv";
 
     // Load conf
     confmap confs {parseConf(confPath)};
@@ -392,7 +410,7 @@ int main(int argc, char* argv[])
         break;
     case UNIFORM_STEPS:
         steadyStateFunc = [](std::size_t generation){
-            double x = MAX((double)(generation - 1), 0.0) / (double)generations;
+            double x = MAX(((double)generation - 1.0), 0.0) / (double)generations;
             return 0.1 + 0.1 * std::floor(x / 0.1);
         };
     }
@@ -409,7 +427,7 @@ int main(int argc, char* argv[])
     }
 
     std::string plotScript{PLOT_SCRIPT};
-    system(("./" + plotScript + " " + outPath).c_str());
+    system(("./" + plotScript + " " + outPath + " " + outPath + ".png" + " " + (showPlot ? "-p" : "")).c_str());
 
     return 0;
 }
