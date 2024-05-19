@@ -25,9 +25,9 @@ std::size_t nQueens(const std::vector<std::size_t> &queens){
     std::size_t checked {0};
     for(std::size_t i {0}; i < queens.size() - 1; i++){
         std::size_t qi {queens.at(i)};
-        for(std::size_t j {i+1}; j < queens.size(); j++){
+        for(std::size_t j {0}; j < queens.size(); j++){
             std::size_t qj {queens.at(j)};
-            if(qi < qj ? qj - (j - i) == qi : qi - (j - i) == qj){
+            if(i != j && (qi < qj ? qj - (j - i) == qi : qi - (j - i) == qj)){
                 checked++;
                 break;
             }

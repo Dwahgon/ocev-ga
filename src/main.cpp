@@ -257,10 +257,13 @@ void runGeneIntPermGA(std::string outPath){
     ga::FitnessFunction<ga::GeneIntPerm> fitnessFunc;
     switch (stringToObjectiveEnum(objective))
     {
-    case NQUEENS:
-        fitnessFunc = [](const ga::Chromosome<ga::GeneIntPerm> &chromosome) {return (double)(chromosome.size() - nQueens(chromosome) - 1)/((double)chromosome.size() - 1.0);};
+    case NQUEENS:{
+        std::size_t maxCollisions = dim * (dim - 1);
+        fitnessFunc = [maxCollisions](const ga::Chromosome<ga::GeneIntPerm> &chromosome) {
+            return (double)(maxCollisions - nQueens(chromosome))/(double)maxCollisions;
+        };
         break;
-    default: {
+    }default: {
         std::cout << "Objective not supported for integer permutation representations: " << objective << std::endl;
     }
     }
