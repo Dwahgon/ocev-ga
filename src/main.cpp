@@ -245,7 +245,11 @@ void runGeneBinGA(std::string outPath){
                     << "OBJ: "  << radioFactory(st,lx)*1360.0       << '\n'
                     << "RES?: " << (radioFactoryR5(st, lx) > 0)     << '\n';
         break;
-    }default: break;
+    } case SAT: {
+        std::cout << "OBJ: " << formula->score(solution.chromosome) << '\n';
+        break;
+    }
+    default: break;
     }
 
     delete binToDoubleConversionFitness;
@@ -316,6 +320,24 @@ void runGeneIntPermGA(std::string outPath){
     };
 
     evolutionaryLoop(geneticAlgorithm, outPath);
+
+    ga::GeneticAlgorithmSolution<ga::GeneIntPerm> solution {geneticAlgorithm.getSolution()};
+    switch (stringToObjectiveEnum(objective))
+    {
+    case NQUEENS:{
+        std::size_t collisions = nQueens(solution.chromosome, true);
+        std::cout << "OBJ: " << collisions << '\n';
+        for (std::size_t i = 0; i < solution.chromosome.size(); i++){
+            for(std::size_t j = 0; j < solution.chromosome.size(); j++){
+                std::cout << (solution.chromosome.at(j) == i ? "X" : ".");
+            }
+            std::cout << '\n';
+        }
+        break;
+    }
+    default: break;
+    }
+
     std::cout << chromosomeToString(geneticAlgorithm.getSolution().chromosome, 0) << std::endl;
 }
 
