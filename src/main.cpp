@@ -67,6 +67,7 @@ ObjectiveEnum stringToObjectiveEnum(std::string const& s){
     if(s == "sat") return SAT;
     if(s == "radio") return RADIO;
     if(s == "nqueens") return NQUEENS;
+    if(s == "nqueens_scored") return NQUEENS_SCORED;
     std::cout << "Invalid objective function: " << s;
     exit(1);
 }
@@ -267,6 +268,15 @@ void runGeneIntPermGA(std::string outPath){
             return (double)(maxCollisions - nQueens(chromosome))/(double)maxCollisions;
         };
         break;
+    }case NQUEENS_SCORED:{
+        std::size_t maxCollisions = dim * (dim - 1);
+        fitnessFunc = [maxCollisions](const ga::Chromosome<ga::GeneIntPerm> &chromosome) {
+            double score = nQueensScored(chromosome);
+            double maxScore = nQueensScoredMax(chromosome.size());
+            double penalty = equalityPenalty * (double)nQueens(chromosome)/(double)maxCollisions;
+            return (1.0 + score / maxScore + penalty) / 2.0;
+        };
+        break;
     }default: {
         std::cout << "Objective not supported for integer permutation representations: " << objective << std::endl;
     }
@@ -327,6 +337,18 @@ void runGeneIntPermGA(std::string outPath){
     case NQUEENS:{
         std::size_t collisions = nQueens(solution.chromosome, true);
         std::cout << "OBJ: " << collisions << '\n';
+        for (std::size_t i = 0; i < solution.chromosome.size(); i++){
+            for(std::size_t j = 0; j < solution.chromosome.size(); j++){
+                std::cout << (solution.chromosome.at(j) == i ? "X" : ".");
+            }
+            std::cout << '\n';
+        }
+        break;
+    }case NQUEENS_SCORED:{
+        std::size_t collisions = nQueens(solution.chromosome, true);
+        double objFunction = nQueensScored(solution.chromosome);
+        std::cout << "OBJ: " << objFunction << '\n';
+        std::cout << "COLLISIONS: " << collisions << '\n';
         for (std::size_t i = 0; i < solution.chromosome.size(); i++){
             for(std::size_t j = 0; j < solution.chromosome.size(); j++){
                 std::cout << (solution.chromosome.at(j) == i ? "X" : ".");

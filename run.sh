@@ -1,5 +1,5 @@
 RUNS=10
-PROBLEMS=("radio" "nqueens8x8" "nqueens16x16" "nqueens32x32" "nqueens64x64" "nqueens128x128" "sat")
+PROBLEMS=("nqueens_scored32x32" "nqueens_scored64x64")
 
 for p in ${PROBLEMS[*]}
 do

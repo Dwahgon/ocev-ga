@@ -31,7 +31,8 @@ enum ObjectiveEnum {
     FUNC1,
     SAT,
     RADIO,
-    NQUEENS
+    NQUEENS,
+    NQUEENS_SCORED,
 };
 
 enum LinearScalingEnum {

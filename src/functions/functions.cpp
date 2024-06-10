@@ -38,3 +38,23 @@ std::size_t nQueens(const std::vector<std::size_t> &queens, bool verbose){
     }
     return checked;
 }
+
+double nQueensScored(const std::vector<std::size_t> &queens){
+    double score {0.0}, newScore;
+    std::size_t queen;
+    for(std::size_t i {0}; i < queens.size(); i++){
+        queen = queens.at(i);
+        newScore = (double)(i + 1 + queens.size() * queen);
+        score += queen % 2 == 0 ? sqrt(newScore) : log10(newScore);
+    }
+    return score;
+}
+
+double nQueensScoredMax(std::size_t size){
+    double score {0.0};
+    std::size_t offset = 1 + size * (size - 1 - (1 - size % 2));
+    for (std::size_t i = 0; i < size; i++){
+        score += sqrt((double)(i + offset));
+    }
+    return score;
+}
