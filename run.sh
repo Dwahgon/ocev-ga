@@ -1,5 +1,5 @@
 RUNS=10
-PROBLEMS=("nqueens_scored32x32" "nqueens_scored64x64")
+PROBLEMS=("nqueens_scored1024x1024")
 
 for p in ${PROBLEMS[*]}
 do
